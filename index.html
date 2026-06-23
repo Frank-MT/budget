@@ -8,8 +8,6 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; padding-bottom: 80px; }
-
-/* 頂部 */
 .topbar { background: white; padding: 16px 16px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 10; }
 .topbar h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
 .status { font-size: 12px; color: #888; display: flex; align-items: center; gap: 5px; }
@@ -17,54 +15,40 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .dot.loading { background: #BA7517; animation: pulse 1s infinite; }
 .dot.error { background: #D85A30; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-/* 底部導覽 */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; display: flex; z-index: 10; padding-bottom: env(safe-area-inset-bottom); }
 .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0; font-size: 11px; color: #aaa; cursor: pointer; border: none; background: none; }
 .nav-btn.active { color: #1a1a1a; }
 .nav-icon { font-size: 22px; line-height: 1; }
-.nav-btn.active .nav-icon { transform: scale(1.1); }
-
-/* 內容區 */
 .content { padding: 16px; max-width: 600px; margin: 0 auto; }
-
-/* 指標卡 */
 .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
 .metric { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 .metric-label { font-size: 11px; color: #888; margin-bottom: 4px; }
 .metric-value { font-size: 18px; font-weight: 500; }
-
-/* 卡片 */
 .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 .section-title { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
-
-/* 表單 */
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 .form-label { font-size: 12px; color: #666; }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 input, select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #e8e8e8; border-radius: 10px; background: #fafaf8; color: #1a1a1a; outline: none; appearance: none; -webkit-appearance: none; }
 input:focus, select:focus { border-color: #1a1a1a; background: white; }
+.select-wrap { position: relative; }
+.select-wrap::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #aaa; font-size: 13px; }
+.select-wrap select { padding-right: 28px; }
 .add-btn { width: 100%; padding: 13px; font-size: 16px; font-weight: 500; border: none; border-radius: 12px; background: #1a1a1a; color: white; cursor: pointer; margin-top: 4px; }
 .add-btn:disabled { opacity: 0.5; }
-.add-btn:active { opacity: 0.8; }
-
-/* 紀錄列表 */
 .record-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
 .record-item:last-child { border-bottom: none; }
 .record-left { flex: 1; min-width: 0; }
-.record-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.record-title { font-size: 14px; font-weight: 500; }
 .record-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
 .record-amount { font-size: 15px; font-weight: 500; white-space: nowrap; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 4px 6px; cursor: pointer; flex-shrink: 0; }
-.del-btn:active { color: #D85A30; }
-.badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 5px; margin-right: 4px; vertical-align: middle; }
+.badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 5px; margin-right: 4px; }
 .type-in { background: #E1F5EE; color: #0F6E56; }
 .type-out { background: #FAECE7; color: #993C1D; }
 .amount-in { color: #1D9E75; }
 .amount-out { color: #D85A30; }
 .empty-state { text-align: center; padding: 32px 0; color: #bbb; font-size: 14px; }
-
-/* 預算進度 */
 .budget-item { margin-bottom: 14px; }
 .budget-item:last-child { margin-bottom: 0; }
 .budget-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
@@ -76,31 +60,32 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .budget-fill.warn { background: #BA7517; }
 .budget-fill.over { background: #D85A30; }
 .budget-hint { font-size: 11px; color: #aaa; }
-.budget-hint.over-hint { color: #D85A30; }
-
-/* 預算設定 */
 .budget-setting-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
 .budget-setting-item:last-child { border-bottom: none; }
 .budget-setting-cat { font-size: 14px; min-width: 44px; }
-.budget-setting-input { flex: 1; }
 .save-btn { padding: 8px 14px; font-size: 13px; border: none; border-radius: 8px; background: #1D9E75; color: white; cursor: pointer; white-space: nowrap; }
-.save-btn:active { opacity: 0.8; }
 .save-ok { font-size: 13px; color: #1D9E75; min-width: 20px; text-align: center; }
-
-/* 統計 */
 .month-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .month-row label { font-size: 13px; color: #666; white-space: nowrap; }
-.month-row select { flex: 1; }
 .cat-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .cat-label { font-size: 13px; min-width: 44px; }
 .cat-track { flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
 .cat-fill-stat { height: 100%; border-radius: 4px; }
 .cat-amt { font-size: 12px; color: #888; min-width: 64px; text-align: right; }
 
-/* select 箭頭 */
-.select-wrap { position: relative; }
-.select-wrap::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #aaa; font-size: 13px; }
-.select-wrap select { padding-right: 28px; }
+/* 分類設定 */
+.keyword-cat-block { margin-bottom: 20px; }
+.keyword-cat-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #1a1a1a; }
+.keyword-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.keyword-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
+.keyword-tag.default { background: #f0f0f0; color: #888; }
+.keyword-tag.custom { background: #1a1a1a; color: white; }
+.keyword-tag-del { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; margin-left: 2px; }
+.keyword-tag-del:hover { color: white; }
+.keyword-add-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.keyword-add-input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; }
+.keyword-add-btn { padding: 7px 14px; font-size: 13px; border: none; border-radius: 8px; background: #378ADD; color: white; cursor: pointer; white-space: nowrap; }
+.keyword-section-label { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 500; letter-spacing: 0.04em; }
 </style>
 </head>
 <body>
@@ -126,29 +111,14 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
     <div class="card">
       <div class="section-title">新增紀錄</div>
       <div class="form-row-2">
-        <div class="form-group">
-          <span class="form-label">類型</span>
-          <div class="select-wrap"><select id="f-type"><option value="expense">支出</option><option value="income">收入</option></select></div>
-        </div>
-        <div class="form-group">
-          <span class="form-label">分類</span>
-          <div class="select-wrap"><select id="f-cat"></select></div>
-        </div>
+        <div class="form-group"><span class="form-label">類型</span><div class="select-wrap"><select id="f-type"><option value="expense">支出</option><option value="income">收入</option></select></div></div>
+        <div class="form-group"><span class="form-label">分類</span><div class="select-wrap"><select id="f-cat"></select></div></div>
       </div>
       <div class="form-row-2">
-        <div class="form-group">
-          <span class="form-label">金額 (NT$)</span>
-          <input type="number" id="f-amount" placeholder="0" min="0" inputmode="numeric" />
-        </div>
-        <div class="form-group">
-          <span class="form-label">日期</span>
-          <input type="date" id="f-date" />
-        </div>
+        <div class="form-group"><span class="form-label">金額 (NT$)</span><input type="number" id="f-amount" placeholder="0" min="0" inputmode="numeric" /></div>
+        <div class="form-group"><span class="form-label">日期</span><input type="date" id="f-date" /></div>
       </div>
-      <div class="form-group">
-        <span class="form-label">備註（選填）</span>
-        <input type="text" id="f-note" placeholder="例：午餐、加油" />
-      </div>
+      <div class="form-group"><span class="form-label">備註（選填）</span><input type="text" id="f-note" placeholder="例：午餐、加油" /></div>
       <button class="add-btn" id="add-btn" onclick="addRecord()">＋ 新增</button>
     </div>
     <div class="card">
@@ -176,19 +146,27 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
       <div id="budget-settings"></div>
     </div>
   </div>
+
+  <!-- 分類設定頁 -->
+  <div id="tab-keywords" style="display:none;">
+    <div class="card">
+      <div class="section-title">分類關鍵字設定</div>
+      <p style="font-size:13px;color:#aaa;margin-bottom:16px;">
+        <span style="display:inline-block;background:#f0f0f0;color:#888;border-radius:20px;padding:2px 8px;font-size:12px;margin-right:4px;">預設</span>系統內建，不可刪除
+        　
+        <span style="display:inline-block;background:#1a1a1a;color:white;border-radius:20px;padding:2px 8px;font-size:12px;margin-right:4px;">自訂</span>你新增的關鍵字
+      </p>
+      <div id="keyword-list"><div class="empty-state">載入中...</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- 底部導覽 -->
 <nav class="bottom-nav">
-  <button class="nav-btn active" onclick="switchTab('records')" id="nav-records">
-    <span class="nav-icon">📒</span>記帳
-  </button>
-  <button class="nav-btn" onclick="switchTab('stats')" id="nav-stats">
-    <span class="nav-icon">📊</span>統計
-  </button>
-  <button class="nav-btn" onclick="switchTab('budget')" id="nav-budget">
-    <span class="nav-icon">🎯</span>預算
-  </button>
+  <button class="nav-btn active" onclick="switchTab('records')" id="nav-records"><span class="nav-icon">📒</span>記帳</button>
+  <button class="nav-btn" onclick="switchTab('stats')" id="nav-stats"><span class="nav-icon">📊</span>統計</button>
+  <button class="nav-btn" onclick="switchTab('budget')" id="nav-budget"><span class="nav-icon">🎯</span>預算</button>
+  <button class="nav-btn" onclick="switchTab('keywords')" id="nav-keywords"><span class="nav-icon">🏷️</span>分類</button>
 </nav>
 
 <script>
@@ -198,6 +176,7 @@ var INCOME_CATS = ['薪資','獎金','投資','副業','其他收入'];
 var CAT_COLORS = ['#378ADD','#1D9E75','#D85A30','#D4537E','#BA7517','#7F77DD','#639922','#888780','#5DCAA5','#F0997B'];
 var records = [];
 var budget = {};
+var keywordsData = { default: {}, custom: {} };
 var trendChart = null;
 var pieChart = null;
 var cbCount = 0;
@@ -236,16 +215,17 @@ async function loadRecords(month) {
     records = data.records || [];
     setStatus('ok', '已連線 Google Sheets');
     return true;
-  } catch(e) {
-    setStatus('error', '連線失敗');
-    return false;
-  }
+  } catch(e) { setStatus('error', '連線失敗'); return false; }
 }
 
 async function loadBudget() {
+  try { var data = await jsonp(API + '?action=getBudget'); budget = data.budget || {}; } catch(e) {}
+}
+
+async function loadKeywords() {
   try {
-    var data = await jsonp(API + '?action=getBudget');
-    budget = data.budget || {};
+    var data = await jsonp(API + '?action=getKeywords');
+    keywordsData = data;
   } catch(e) {}
 }
 
@@ -307,9 +287,7 @@ function renderBudgetBars() {
   records.filter(function(r){return r.type==='expense';}).forEach(function(r){ catMap[r.cat]=(catMap[r.cat]||0)+Number(r.amount); });
   var hasBudget = false;
   var html = '';
-  var today = dayOfMonth();
-  var total = daysInMonth();
-  var remaining = total - today;
+  var remaining = daysInMonth() - dayOfMonth();
   EXPENSE_CATS.forEach(function(cat) {
     var limit = budget[cat];
     if (!limit) return;
@@ -362,7 +340,7 @@ function renderBudgetSettings() {
     var val = budget[cat] || '';
     html += '<div class="budget-setting-item">'
       +'<span class="budget-setting-cat">'+cat+'</span>'
-      +'<input class="budget-setting-input" type="number" min="0" placeholder="不設限" value="'+val+'" id="bi-'+cat+'" inputmode="numeric" />'
+      +'<input style="flex:1;" type="number" min="0" placeholder="不設限" value="'+val+'" id="bi-'+cat+'" inputmode="numeric" />'
       +'<button class="save-btn" onclick="saveBudgetItem(\''+cat+'\')">儲存</button>'
       +'<span class="save-ok" id="bs-'+cat+'"></span>'
       +'</div>';
@@ -379,6 +357,81 @@ async function saveBudgetItem(cat) {
   msgEl.textContent = ok ? '✓' : '✗';
   setTimeout(function(){ msgEl.textContent = ''; }, 2000);
   renderBudgetBars();
+}
+
+function renderKeywords() {
+  var el = document.getElementById('keyword-list');
+  var html = '';
+  var def = keywordsData.default || {};
+  var custom = keywordsData.custom || {};
+
+  EXPENSE_CATS.forEach(function(cat) {
+    html += '<div class="keyword-cat-block">';
+    html += '<div class="keyword-cat-title">'+cat+'</div>';
+
+    // 預設關鍵字
+    var defKws = def[cat] || [];
+    if (defKws.length) {
+      html += '<div class="keyword-section-label">預設</div>';
+      html += '<div class="keyword-tags">';
+      defKws.forEach(function(kw) {
+        html += '<span class="keyword-tag default">'+kw+'</span>';
+      });
+      html += '</div>';
+    }
+
+    // 自訂關鍵字
+    var customKws = custom[cat] || [];
+    html += '<div class="keyword-section-label" style="margin-top:6px;">自訂</div>';
+    html += '<div class="keyword-tags" id="custom-tags-'+cat+'">';
+    if (customKws.length) {
+      customKws.forEach(function(kw) {
+        html += '<span class="keyword-tag custom">'+kw
+          +'<button class="keyword-tag-del" onclick="removeKeyword(\''+cat+'\',\''+kw+'\')">×</button>'
+          +'</span>';
+      });
+    } else {
+      html += '<span style="font-size:12px;color:#ccc;">尚無自訂關鍵字</span>';
+    }
+    html += '</div>';
+
+    // 新增輸入
+    html += '<div class="keyword-add-row">'
+      +'<input class="keyword-add-input" type="text" placeholder="新增關鍵字" id="kw-input-'+cat+'" />'
+      +'<button class="keyword-add-btn" onclick="addKeyword(\''+cat+'\')">＋ 新增</button>'
+      +'</div>';
+
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+async function addKeyword(cat) {
+  var input = document.getElementById('kw-input-'+cat);
+  var kw = input.value.trim();
+  if (!kw) return;
+  input.value = '';
+  setStatus('loading', '儲存中...');
+  try {
+    await jsonp(API + '?action=addKeyword&cat='+encodeURIComponent(cat)+'&keyword='+encodeURIComponent(kw));
+    if (!keywordsData.custom[cat]) keywordsData.custom[cat] = [];
+    if (keywordsData.custom[cat].indexOf(kw) < 0) keywordsData.custom[cat].push(kw);
+    setStatus('ok', '已連線 Google Sheets');
+    renderKeywords();
+  } catch(e) { setStatus('error', '儲存失敗'); }
+}
+
+async function removeKeyword(cat, kw) {
+  setStatus('loading', '刪除中...');
+  try {
+    await jsonp(API + '?action=deleteKeyword&cat='+encodeURIComponent(cat)+'&keyword='+encodeURIComponent(kw));
+    if (keywordsData.custom[cat]) {
+      keywordsData.custom[cat] = keywordsData.custom[cat].filter(function(k){ return k !== kw; });
+    }
+    setStatus('ok', '已連線 Google Sheets');
+    renderKeywords();
+  } catch(e) { setStatus('error', '刪除失敗'); }
 }
 
 function populateMonthSelect() {
@@ -429,12 +482,13 @@ async function renderStats() {
 }
 
 function switchTab(tab) {
-  ['records','stats','budget'].forEach(function(t) {
+  ['records','stats','budget','keywords'].forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
     document.getElementById('nav-'+t).classList.toggle('active', t===tab);
   });
   if (tab==='stats') renderStats();
   if (tab==='budget') renderBudgetSettings();
+  if (tab==='keywords') renderKeywords();
 }
 
 async function init() {
@@ -442,8 +496,7 @@ async function init() {
   updateCats();
   document.getElementById('f-type').addEventListener('change', updateCats);
   populateMonthSelect();
-  await loadBudget();
-  await loadRecords(currentMonth());
+  await Promise.all([loadBudget(), loadKeywords(), loadRecords(currentMonth())]);
   renderRecords();
 }
 
