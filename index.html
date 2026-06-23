@@ -16,19 +16,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .dot.error { background: #D85A30; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; display: flex; z-index: 10; padding-bottom: env(safe-area-inset-bottom); }
-.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0; font-size: 11px; color: #aaa; cursor: pointer; border: none; background: none; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0; font-size: 10px; color: #aaa; cursor: pointer; border: none; background: none; }
 .nav-btn.active { color: #1a1a1a; }
-.nav-icon { font-size: 22px; line-height: 1; }
+.nav-icon { font-size: 20px; line-height: 1; }
 .content { padding: 16px; max-width: 600px; margin: 0 auto; }
 .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
 .metric { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 .metric-label { font-size: 11px; color: #888; margin-bottom: 4px; }
-.metric-value { font-size: 18px; font-weight: 500; }
+.metric-value { font-size: 17px; font-weight: 500; }
 .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 .section-title { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 .form-label { font-size: 12px; color: #666; }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 input, select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #e8e8e8; border-radius: 10px; background: #fafaf8; color: #1a1a1a; outline: none; appearance: none; -webkit-appearance: none; }
 input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .select-wrap { position: relative; }
@@ -40,7 +41,7 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .record-item:last-child { border-bottom: none; }
 .record-left { flex: 1; min-width: 0; }
 .record-title { font-size: 14px; font-weight: 500; }
-.record-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+.record-sub { font-size: 12px; color: #aaa; margin-top: 2px; display: flex; gap: 8px; align-items: center; }
 .record-amount { font-size: 15px; font-weight: 500; white-space: nowrap; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 4px 6px; cursor: pointer; flex-shrink: 0; }
 .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 5px; margin-right: 4px; }
@@ -48,7 +49,15 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .type-out { background: #FAECE7; color: #993C1D; }
 .amount-in { color: #1D9E75; }
 .amount-out { color: #D85A30; }
+.pay-tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #f0f0f0; color: #666; }
+.pay-tag.linepay { background: #E8F5E9; color: #2E7D32; }
+.pay-tag.taishin { background: #FFF3E0; color: #E65100; }
+.pay-tag.fubon { background: #E3F2FD; color: #1565C0; }
+.pay-tag.cash { background: #F5F5F5; color: #757575; }
+.pay-tag.transfer { background: #EDE7F6; color: #4527A0; }
 .empty-state { text-align: center; padding: 32px 0; color: #bbb; font-size: 14px; }
+
+/* 預算 */
 .budget-item { margin-bottom: 14px; }
 .budget-item:last-child { margin-bottom: 0; }
 .budget-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
@@ -62,9 +71,25 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .budget-hint { font-size: 11px; color: #aaa; }
 .budget-setting-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
 .budget-setting-item:last-child { border-bottom: none; }
-.budget-setting-cat { font-size: 14px; min-width: 44px; }
 .save-btn { padding: 8px 14px; font-size: 13px; border: none; border-radius: 8px; background: #1D9E75; color: white; cursor: pointer; white-space: nowrap; }
 .save-ok { font-size: 13px; color: #1D9E75; min-width: 20px; text-align: center; }
+
+/* 帳單 */
+.card-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.card-block { background: white; border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.card-name { font-size: 13px; color: #888; margin-bottom: 6px; }
+.card-amount { font-size: 24px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+.card-due { font-size: 12px; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+.card-due.urgent { background: #FAECE7; color: #D85A30; }
+.card-due.soon { background: #FFF8E1; color: #BA7517; }
+.card-due.ok { background: #E1F5EE; color: #0F6E56; }
+.card-period { font-size: 11px; color: #aaa; margin-top: 6px; }
+.card-breakdown { margin-top: 16px; }
+.card-breakdown-title { font-size: 12px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.pay-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+.pay-row:last-child { border-bottom: none; }
+
+/* 統計 */
 .month-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .month-row label { font-size: 13px; color: #666; white-space: nowrap; }
 .cat-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -73,19 +98,19 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .cat-fill-stat { height: 100%; border-radius: 4px; }
 .cat-amt { font-size: 12px; color: #888; min-width: 64px; text-align: right; }
 
-/* 分類設定 */
+/* 分類關鍵字 */
 .keyword-cat-block { margin-bottom: 20px; }
-.keyword-cat-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #1a1a1a; }
+.keyword-cat-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
 .keyword-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .keyword-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
 .keyword-tag.default { background: #f0f0f0; color: #888; }
 .keyword-tag.custom { background: #1a1a1a; color: white; }
-.keyword-tag-del { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; margin-left: 2px; }
+.keyword-tag-del { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
 .keyword-tag-del:hover { color: white; }
-.keyword-add-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
-.keyword-add-input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; }
+.keyword-add-row { display: flex; gap: 8px; margin-top: 6px; }
+.keyword-add-input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; outline: none; }
 .keyword-add-btn { padding: 7px 14px; font-size: 13px; border: none; border-radius: 8px; background: #378ADD; color: white; cursor: pointer; white-space: nowrap; }
-.keyword-section-label { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 500; letter-spacing: 0.04em; }
+.kw-section-label { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -114,8 +139,9 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
         <div class="form-group"><span class="form-label">類型</span><div class="select-wrap"><select id="f-type"><option value="expense">支出</option><option value="income">收入</option></select></div></div>
         <div class="form-group"><span class="form-label">分類</span><div class="select-wrap"><select id="f-cat"></select></div></div>
       </div>
-      <div class="form-row-2">
+      <div class="form-row-3">
         <div class="form-group"><span class="form-label">金額 (NT$)</span><input type="number" id="f-amount" placeholder="0" min="0" inputmode="numeric" /></div>
+        <div class="form-group"><span class="form-label">付款方式</span><div class="select-wrap"><select id="f-payment"><option value="台新" selected>台新</option><option value="富邦">富邦</option><option value="現金">現金</option><option value="轉帳">轉帳</option></select></div></div>
         <div class="form-group"><span class="form-label">日期</span><input type="date" id="f-date" /></div>
       </div>
       <div class="form-group"><span class="form-label">備註（選填）</span><input type="text" id="f-note" placeholder="例：午餐、加油" /></div>
@@ -124,6 +150,15 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
     <div class="card">
       <div class="section-title">本月紀錄</div>
       <div id="records-list"><div class="empty-state">載入中...</div></div>
+    </div>
+  </div>
+
+  <!-- 帳單頁 -->
+  <div id="tab-cards" style="display:none;">
+    <div class="card-summary" id="card-summary"><div class="empty-state" style="grid-column:1/-1;">載入中...</div></div>
+    <div class="card">
+      <div class="section-title">本月付款方式分析</div>
+      <div id="payment-breakdown"></div>
     </div>
   </div>
 
@@ -152,9 +187,8 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
     <div class="card">
       <div class="section-title">分類關鍵字設定</div>
       <p style="font-size:13px;color:#aaa;margin-bottom:16px;">
-        <span style="display:inline-block;background:#f0f0f0;color:#888;border-radius:20px;padding:2px 8px;font-size:12px;margin-right:4px;">預設</span>系統內建，不可刪除
-        　
-        <span style="display:inline-block;background:#1a1a1a;color:white;border-radius:20px;padding:2px 8px;font-size:12px;margin-right:4px;">自訂</span>你新增的關鍵字
+        <span style="display:inline-block;background:#f0f0f0;color:#888;border-radius:20px;padding:2px 8px;font-size:12px;margin-right:4px;">預設</span>系統內建
+        　<span style="display:inline-block;background:#1a1a1a;color:white;border-radius:20px;padding:2px 8px;font-size:12px;margin-right:4px;">自訂</span>你新增的
       </p>
       <div id="keyword-list"><div class="empty-state">載入中...</div></div>
     </div>
@@ -164,6 +198,7 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 <!-- 底部導覽 -->
 <nav class="bottom-nav">
   <button class="nav-btn active" onclick="switchTab('records')" id="nav-records"><span class="nav-icon">📒</span>記帳</button>
+  <button class="nav-btn" onclick="switchTab('cards')" id="nav-cards"><span class="nav-icon">💳</span>帳單</button>
   <button class="nav-btn" onclick="switchTab('stats')" id="nav-stats"><span class="nav-icon">📊</span>統計</button>
   <button class="nav-btn" onclick="switchTab('budget')" id="nav-budget"><span class="nav-icon">🎯</span>預算</button>
   <button class="nav-btn" onclick="switchTab('keywords')" id="nav-keywords"><span class="nav-icon">🏷️</span>分類</button>
@@ -171,12 +206,13 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 
 <script>
 var API = 'https://script.google.com/macros/s/AKfycbyUswjrumblfN5IwFx_h3l2AY2vMZZBO13xTdsnv3lTxXk2gDTcSqFa4FQ_aXzVjRts/exec';
-var EXPENSE_CATS = ['餐飲','交通','購物','居家','醫療','娛樂','教育','其他'];
+var EXPENSE_CATS = ['餐飲','交通','購物','固定支出','居家','醫療','娛樂','教育','其他'];
 var INCOME_CATS = ['薪資','獎金','投資','副業','其他收入'];
-var CAT_COLORS = ['#378ADD','#1D9E75','#D85A30','#D4537E','#BA7517','#7F77DD','#639922','#888780','#5DCAA5','#F0997B'];
+var CAT_COLORS = ['#378ADD','#1D9E75','#D85A30','#5B8C5A','#D4537E','#BA7517','#7F77DD','#639922','#888780'];
+var PAYMENT_METHODS = ['台新','富邦','現金','轉帳'];
 var records = [];
 var budget = {};
-var keywordsData = { default: {}, custom: {} };
+var keywordsData = { defaults: {}, custom: {} };
 var trendChart = null;
 var pieChart = null;
 var cbCount = 0;
@@ -194,7 +230,7 @@ function jsonp(url) {
   return new Promise(function(resolve, reject) {
     var cbName = '__cb' + (++cbCount) + '_' + Date.now();
     var script = document.createElement('script');
-    var timer = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 10000);
+    var timer = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 15000);
     window[cbName] = function(data) { cleanup(); resolve(data); };
     function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
     script.onerror = function() { cleanup(); reject(new Error('network error')); };
@@ -203,9 +239,19 @@ function jsonp(url) {
   });
 }
 
+function getPayClass(payment) {
+  if (!payment) return 'pay-tag';
+  if (payment === '台新') return 'pay-tag taishin';
+  if (payment === '富邦') return 'pay-tag fubon';
+  if (payment === '轉帳') return 'pay-tag transfer';
+  return 'pay-tag cash';
+}
+
 function updateCats() {
   var cats = document.getElementById('f-type').value === 'expense' ? EXPENSE_CATS : INCOME_CATS;
   document.getElementById('f-cat').innerHTML = cats.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
+  var payGroup = document.getElementById('f-payment').closest('.form-group');
+  payGroup.style.display = document.getElementById('f-type').value === 'expense' ? '' : 'none';
 }
 
 async function loadRecords(month) {
@@ -223,18 +269,7 @@ async function loadBudget() {
 }
 
 async function loadKeywords() {
-  try {
-    var data = await jsonp(API + '?action=getKeywords');
-    keywordsData = data;
-  } catch(e) {}
-}
-
-async function saveBudget(cat, amount) {
-  try {
-    await jsonp(API + '?action=setBudget&cat=' + encodeURIComponent(cat) + '&amount=' + amount);
-    budget[cat] = Number(amount);
-    return true;
-  } catch(e) { return false; }
+  try { var data = await jsonp(API + '?action=getKeywords'); keywordsData = data; } catch(e) {}
 }
 
 async function addRecord() {
@@ -243,13 +278,16 @@ async function addRecord() {
   var amount = parseFloat(document.getElementById('f-amount').value);
   var note = document.getElementById('f-note').value.trim();
   var date = document.getElementById('f-date').value;
+  var payment = type === 'expense' ? document.getElementById('f-payment').value : '';
   if (!amount || amount <= 0) { document.getElementById('f-amount').focus(); return; }
   if (!date) return;
   var btn = document.getElementById('add-btn');
   btn.disabled = true; btn.textContent = '新增中...';
   setStatus('loading', '儲存中...');
   var id = Date.now();
-  var params = 'action=addRecord&id='+id+'&date='+date+'&type='+encodeURIComponent(type)+'&cat='+encodeURIComponent(cat)+'&amount='+amount+'&note='+encodeURIComponent(note);
+  var params = 'action=addRecord&id='+id+'&date='+date+'&type='+encodeURIComponent(type)
+    +'&cat='+encodeURIComponent(cat)+'&amount='+amount
+    +'&note='+encodeURIComponent(note)+'&payment='+encodeURIComponent(payment);
   try {
     await jsonp(API + '?' + params);
     document.getElementById('f-amount').value = '';
@@ -303,8 +341,7 @@ function renderBudgetBars() {
     html += '<div class="budget-item">'
       +'<div class="budget-header"><span class="budget-cat-name">'+cat+'</span><span class="budget-amounts">NT$'+spent.toLocaleString()+' / NT$'+limit.toLocaleString()+'</span></div>'
       +'<div class="budget-track"><div class="budget-fill '+cls+'" style="width:'+pct+'%;"></div></div>'
-      +'<div class="budget-hint">'+hintHtml+'</div>'
-      +'</div>';
+      +'<div class="budget-hint">'+hintHtml+'</div></div>';
   });
   var card = document.getElementById('budget-overview-card');
   document.getElementById('budget-bars').innerHTML = html;
@@ -322,10 +359,11 @@ function renderRecords() {
     var year = String(r.date).slice(0,4);
     var isIncome = r.type === 'income';
     var title = r.note ? r.cat + ' · ' + r.note : r.cat;
+    var payTag = r.payment ? '<span class="'+getPayClass(r.payment)+'">'+r.payment+'</span>' : '';
     html += '<div class="record-item">'
       +'<div class="record-left">'
       +'<div class="record-title"><span class="badge '+(isIncome?'type-in':'type-out')+'">'+(isIncome?'收入':'支出')+'</span>'+title+'</div>'
-      +'<div class="record-sub">'+r.date+'</div>'
+      +'<div class="record-sub">'+r.date+(payTag?' '+payTag:'')+'</div>'
       +'</div>'
       +'<div class="record-amount '+(isIncome?'amount-in':'amount-out')+'">'+(isIncome?'+':'-')+'NT$'+Number(r.amount).toLocaleString()+'</div>'
       +'<button class="del-btn" onclick="deleteRecord('+r.id+',\''+year+'\')" aria-label="刪除">×</button>'
@@ -334,12 +372,59 @@ function renderRecords() {
   el.innerHTML = html;
 }
 
+async function renderCards() {
+  var summaryEl = document.getElementById('card-summary');
+  var breakdownEl = document.getElementById('payment-breakdown');
+  summaryEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">載入中...</div>';
+  try {
+    var data = await jsonp(API + '?action=getCardSummary');
+    var cards = data.cards || {};
+    var html = '';
+    var cardNames = ['台新','富邦'];
+    cardNames.forEach(function(name) {
+      var c = cards[name];
+      if (!c) return;
+      var days = c.daysUntilDue;
+      var dueCls = days <= 3 ? 'urgent' : days <= 7 ? 'soon' : 'ok';
+      var dueText = days <= 0 ? '今日到期！' : '距繳費 '+days+' 天';
+      html += '<div class="card-block">'
+        +'<div class="card-name">'+name+'信用卡</div>'
+        +'<div class="card-amount">NT$'+Number(c.total).toLocaleString()+'</div>'
+        +'<span class="card-due '+dueCls+'">'+dueText+'</span>'
+        +'<div class="card-period">'+c.startDate+' ~ '+c.endDate+'</div>'
+        +'</div>';
+    });
+    summaryEl.innerHTML = html || '<div class="empty-state" style="grid-column:1/-1;">無資料</div>';
+
+    // 付款方式分析（本月）
+    await loadRecords(currentMonth());
+    var payMap = {};
+    records.filter(function(r){return r.type==='expense';}).forEach(function(r){
+      var p = r.payment || '未標記';
+      payMap[p] = (payMap[p]||0) + Number(r.amount);
+    });
+    var total = Object.values(payMap).reduce(function(s,v){return s+v;},0);
+    var bHtml = '';
+    PAYMENT_METHODS.concat(['未標記']).forEach(function(p) {
+      if (!payMap[p]) return;
+      var pct = total > 0 ? Math.round(payMap[p]/total*100) : 0;
+      bHtml += '<div class="pay-row">'
+        +'<span class="'+getPayClass(p)+'">'+p+'</span>'
+        +'<span style="flex:1;margin:0 12px;font-size:12px;color:#aaa;">'+pct+'%</span>'
+        +'<span style="font-weight:500;">NT$'+payMap[p].toLocaleString()+'</span>'
+        +'</div>';
+    });
+    breakdownEl.innerHTML = bHtml || '<div class="empty-state">本月無支出紀錄</div>';
+    setStatus('ok', '已連線 Google Sheets');
+  } catch(e) { setStatus('error', '載入失敗'); }
+}
+
 function renderBudgetSettings() {
   var html = '';
   EXPENSE_CATS.forEach(function(cat) {
     var val = budget[cat] || '';
     html += '<div class="budget-setting-item">'
-      +'<span class="budget-setting-cat">'+cat+'</span>'
+      +'<span style="font-size:14px;min-width:44px;">'+cat+'</span>'
       +'<input style="flex:1;" type="number" min="0" placeholder="不設限" value="'+val+'" id="bi-'+cat+'" inputmode="numeric" />'
       +'<button class="save-btn" onclick="saveBudgetItem(\''+cat+'\')">儲存</button>'
       +'<span class="save-ok" id="bs-'+cat+'"></span>'
@@ -353,83 +438,65 @@ async function saveBudgetItem(cat) {
   var amount = val ? Number(val) : 0;
   var msgEl = document.getElementById('bs-'+cat);
   msgEl.textContent = '...';
-  var ok = await saveBudget(cat, amount);
-  msgEl.textContent = ok ? '✓' : '✗';
-  setTimeout(function(){ msgEl.textContent = ''; }, 2000);
-  renderBudgetBars();
+  try {
+    await jsonp(API + '?action=setBudget&cat='+encodeURIComponent(cat)+'&amount='+amount);
+    budget[cat] = amount;
+    msgEl.textContent = '✓';
+    setTimeout(function(){ msgEl.textContent = ''; }, 2000);
+    renderBudgetBars();
+  } catch(e) { msgEl.textContent = '✗'; }
 }
 
 function renderKeywords() {
   var el = document.getElementById('keyword-list');
   var html = '';
-  var def = keywordsData.default || {};
+  var def = keywordsData.defaults || {};
   var custom = keywordsData.custom || {};
-
   EXPENSE_CATS.forEach(function(cat) {
     html += '<div class="keyword-cat-block">';
     html += '<div class="keyword-cat-title">'+cat+'</div>';
-
-    // 預設關鍵字
     var defKws = def[cat] || [];
     if (defKws.length) {
-      html += '<div class="keyword-section-label">預設</div>';
-      html += '<div class="keyword-tags">';
-      defKws.forEach(function(kw) {
-        html += '<span class="keyword-tag default">'+kw+'</span>';
-      });
+      html += '<div class="kw-section-label">預設</div><div class="keyword-tags">';
+      defKws.forEach(function(kw){ html += '<span class="keyword-tag default">'+kw+'</span>'; });
       html += '</div>';
     }
-
-    // 自訂關鍵字
     var customKws = custom[cat] || [];
-    html += '<div class="keyword-section-label" style="margin-top:6px;">自訂</div>';
-    html += '<div class="keyword-tags" id="custom-tags-'+cat+'">';
+    html += '<div class="kw-section-label" style="margin-top:6px;">自訂</div>';
+    html += '<div class="keyword-tags">';
     if (customKws.length) {
-      customKws.forEach(function(kw) {
-        html += '<span class="keyword-tag custom">'+kw
-          +'<button class="keyword-tag-del" onclick="removeKeyword(\''+cat+'\',\''+kw+'\')">×</button>'
-          +'</span>';
+      customKws.forEach(function(kw){
+        html += '<span class="keyword-tag custom">'+kw+'<button class="keyword-tag-del" onclick="removeKeyword(\''+cat+'\',\''+kw+'\')">×</button></span>';
       });
     } else {
-      html += '<span style="font-size:12px;color:#ccc;">尚無自訂關鍵字</span>';
+      html += '<span style="font-size:12px;color:#ccc;">尚無自訂</span>';
     }
     html += '</div>';
-
-    // 新增輸入
-    html += '<div class="keyword-add-row">'
-      +'<input class="keyword-add-input" type="text" placeholder="新增關鍵字" id="kw-input-'+cat+'" />'
-      +'<button class="keyword-add-btn" onclick="addKeyword(\''+cat+'\')">＋ 新增</button>'
-      +'</div>';
-
+    html += '<div class="keyword-add-row"><input class="keyword-add-input" type="text" placeholder="新增關鍵字" id="kw-'+cat+'" />'
+      +'<button class="keyword-add-btn" onclick="addKeyword(\''+cat+'\')">＋</button></div>';
     html += '</div>';
   });
-
   el.innerHTML = html;
 }
 
 async function addKeyword(cat) {
-  var input = document.getElementById('kw-input-'+cat);
+  var input = document.getElementById('kw-'+cat);
   var kw = input.value.trim();
   if (!kw) return;
   input.value = '';
-  setStatus('loading', '儲存中...');
   try {
     await jsonp(API + '?action=addKeyword&cat='+encodeURIComponent(cat)+'&keyword='+encodeURIComponent(kw));
     if (!keywordsData.custom[cat]) keywordsData.custom[cat] = [];
     if (keywordsData.custom[cat].indexOf(kw) < 0) keywordsData.custom[cat].push(kw);
-    setStatus('ok', '已連線 Google Sheets');
     renderKeywords();
+    setStatus('ok', '已儲存');
   } catch(e) { setStatus('error', '儲存失敗'); }
 }
 
 async function removeKeyword(cat, kw) {
-  setStatus('loading', '刪除中...');
   try {
     await jsonp(API + '?action=deleteKeyword&cat='+encodeURIComponent(cat)+'&keyword='+encodeURIComponent(kw));
-    if (keywordsData.custom[cat]) {
-      keywordsData.custom[cat] = keywordsData.custom[cat].filter(function(k){ return k !== kw; });
-    }
-    setStatus('ok', '已連線 Google Sheets');
+    if (keywordsData.custom[cat]) keywordsData.custom[cat] = keywordsData.custom[cat].filter(function(k){return k!==kw;});
     renderKeywords();
   } catch(e) { setStatus('error', '刪除失敗'); }
 }
@@ -462,33 +529,32 @@ async function renderStats() {
   var catVals = catKeys.map(function(k){return catMap[k];});
   var maxVal = Math.max.apply(null,catVals.concat([1]));
   if (pieChart) pieChart.destroy();
-  if (catKeys.length) {
-    pieChart = new Chart(document.getElementById('pie-chart').getContext('2d'), {
-      type:'doughnut', data:{labels:catKeys,datasets:[{data:catVals,backgroundColor:CAT_COLORS.slice(0,catKeys.length),borderWidth:1}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:10}}}}
-    });
-  } else {
-    pieChart = new Chart(document.getElementById('pie-chart').getContext('2d'), {
-      type:'doughnut', data:{labels:['無資料'],datasets:[{data:[1],backgroundColor:['#e0e0e0'],borderWidth:0}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
-    });
-  }
+  pieChart = catKeys.length
+    ? new Chart(document.getElementById('pie-chart').getContext('2d'), {
+        type:'doughnut', data:{labels:catKeys,datasets:[{data:catVals,backgroundColor:CAT_COLORS.slice(0,catKeys.length),borderWidth:1}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:10}}}}
+      })
+    : new Chart(document.getElementById('pie-chart').getContext('2d'), {
+        type:'doughnut', data:{labels:['無資料'],datasets:[{data:[1],backgroundColor:['#e0e0e0'],borderWidth:0}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+      });
   var sorted = catKeys.map(function(k,i){return {k:k,v:catVals[i]};}).sort(function(a,b){return b.v-a.v;});
   var barsEl = document.getElementById('cat-bars');
-  if (!sorted.length) { barsEl.innerHTML = '<div style="font-size:13px;color:#aaa;padding:8px 0;">本月無支出紀錄</div>'; return; }
-  barsEl.innerHTML = sorted.map(function(item,j){
+  barsEl.innerHTML = sorted.length ? sorted.map(function(item,j){
     return '<div class="cat-bar"><span class="cat-label">'+item.k+'</span><div class="cat-track"><div class="cat-fill-stat" style="width:'+Math.round(item.v/maxVal*100)+'%;background:'+CAT_COLORS[j%CAT_COLORS.length]+';height:100%;border-radius:4px;"></div></div><span class="cat-amt">NT$'+item.v.toLocaleString()+'</span></div>';
-  }).join('');
+  }).join('') : '<div style="font-size:13px;color:#aaa;padding:8px 0;">本月無支出紀錄</div>';
 }
 
+var TABS = ['records','cards','stats','budget','keywords'];
 function switchTab(tab) {
-  ['records','stats','budget','keywords'].forEach(function(t) {
+  TABS.forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
     document.getElementById('nav-'+t).classList.toggle('active', t===tab);
   });
   if (tab==='stats') renderStats();
   if (tab==='budget') renderBudgetSettings();
   if (tab==='keywords') renderKeywords();
+  if (tab==='cards') renderCards();
 }
 
 async function init() {
