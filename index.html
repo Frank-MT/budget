@@ -106,6 +106,8 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .month-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .month-row label { font-size: 13px; color: #666; white-space: nowrap; }
 .cat-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.trend-period-btn { padding: 5px 12px; font-size: 12px; border: 1px solid #e0e0e0; border-radius: 20px; background: white; color: #888; cursor: pointer; }
+.trend-period-btn.active { background: #1a1a1a; color: white; border-color: transparent; }
 .cat-label { font-size: 13px; min-width: 44px; }
 .cat-track { flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
 .cat-fill-stat { height: 100%; border-radius: 4px; }
@@ -181,9 +183,39 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
       <label>月份</label>
       <div class="select-wrap" style="flex:1;"><select id="stat-month" onchange="renderStats()"></select></div>
     </div>
-    <div class="card"><div class="section-title">收支總覽</div><div style="position:relative;height:180px;"><canvas id="trend-chart"></canvas></div></div>
-    <div class="card"><div class="section-title">支出分類</div><div style="position:relative;height:200px;"><canvas id="pie-chart"></canvas></div></div>
+    <div class="card"><div class="section-title">收支總覽</div><div style="position:relative;height:180px;"><canvas id="trend-chart" role="img" aria-label="當月收支總覽長條圖">收支總覽</canvas></div></div>
+    <div class="card"><div class="section-title">支出分類</div><div style="position:relative;height:200px;"><canvas id="pie-chart" role="img" aria-label="支出分類圓餅圖">支出分類</canvas></div></div>
     <div class="card"><div class="section-title">各分類支出</div><div id="cat-bars"></div></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 12px;">
+      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);">趨勢分析</span>
+      <div style="display:flex;gap:6px;">
+        <button class="trend-period-btn active" id="tp-3" onclick="setTrendPeriod(3)">3個月</button>
+        <button class="trend-period-btn" id="tp-6" onclick="setTrendPeriod(6)">6個月</button>
+        <button class="trend-period-btn" id="tp-12" onclick="setTrendPeriod(12)">12個月</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">月收支趨勢</div>
+      <div style="position:relative;height:200px;"><canvas id="monthly-trend-chart" role="img" aria-label="月收支趨勢折線圖">月收支趨勢</canvas></div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--color-text-secondary);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:2px;background:#1D9E75;display:inline-block;border-radius:1px;"></span>收入</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:2px;background:#D85A30;display:inline-block;border-radius:1px;"></span>支出</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">分類支出趨勢</div>
+      <div style="position:relative;height:220px;"><canvas id="cat-trend-chart" role="img" aria-label="各分類支出趨勢折線圖">分類支出趨勢</canvas></div>
+      <div id="cat-trend-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--color-text-secondary);"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">固定 vs 彈性支出</div>
+      <div style="position:relative;height:200px;"><canvas id="fixed-flex-chart" role="img" aria-label="固定與彈性支出堆疊長條圖">固定與彈性支出</canvas></div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--color-text-secondary);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#5B8C5A;display:inline-block;"></span>固定支出</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#D85A30;display:inline-block;"></span>彈性支出</span>
+      </div>
+    </div>
   </div>
 
   <!-- 預算頁 -->
@@ -679,6 +711,104 @@ function populateMonthSelect() {
   if (months.indexOf(prev) >= 0) sel.value = prev;
 }
 
+var monthlyTrendChart = null;
+var catTrendChart = null;
+var fixedFlexChart = null;
+var currentTrendPeriod = 3;
+
+function setTrendPeriod(n) {
+  currentTrendPeriod = n;
+  [3,6,12].forEach(function(p) {
+    var btn = document.getElementById('tp-'+p);
+    if (btn) btn.classList.toggle('active', p === n);
+  });
+  renderTrendCharts();
+}
+
+async function renderTrendCharts() {
+  setStatus('loading', '載入趨勢中...');
+  try {
+    var data = await jsonp(API + '?action=getMonthlyTrend&months=' + currentTrendPeriod);
+    var trend = data.trend || [];
+    var labels = trend.map(function(t){ return t.month.slice(5) + '月'; });
+    var incomes = trend.map(function(t){ return t.income; });
+    var expenses = trend.map(function(t){ return t.expense; });
+    var fixed = trend.map(function(t){ return t.fixed; });
+    var flexible = trend.map(function(t){ return t.flexible; });
+
+    // 圖一：月收支趨勢
+    if (monthlyTrendChart) monthlyTrendChart.destroy();
+    monthlyTrendChart = new Chart(document.getElementById('monthly-trend-chart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label:'收入', data: incomes, borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,0.08)', tension:0.4, fill:true, borderWidth:2, pointRadius:4, pointBackgroundColor:'#1D9E75' },
+          { label:'支出', data: expenses, borderColor:'#D85A30', backgroundColor:'rgba(216,90,48,0.08)', tension:0.4, fill:true, borderWidth:2, pointRadius:4, pointBackgroundColor:'#D85A30', borderDash:[5,3] }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:false, ticks:{ callback:function(v){ return 'NT$'+(v/1000)+'k'; } } } }
+      }
+    });
+
+    // 圖二：分類支出趨勢
+    var catDatasets = [];
+    EXPENSE_CATS.forEach(function(cat, i) {
+      var hasData = trend.some(function(t){ return t.cats && t.cats[cat] > 0; });
+      if (!hasData) return;
+      catDatasets.push({
+        label: cat,
+        data: trend.map(function(t){ return t.cats ? (t.cats[cat] || 0) : 0; }),
+        borderColor: CAT_COLORS[i % CAT_COLORS.length],
+        tension: 0.4, fill: false, borderWidth: 2, pointRadius: 3,
+        pointBackgroundColor: CAT_COLORS[i % CAT_COLORS.length]
+      });
+    });
+    if (catTrendChart) catTrendChart.destroy();
+    catTrendChart = new Chart(document.getElementById('cat-trend-chart').getContext('2d'), {
+      type: 'line',
+      data: { labels: labels, datasets: catDatasets },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, ticks:{ callback:function(v){ return 'NT$'+(v/1000)+'k'; } } } }
+      }
+    });
+    // 圖二圖例
+    var legendEl = document.getElementById('cat-trend-legend');
+    legendEl.innerHTML = catDatasets.map(function(ds){
+      return '<span style="display:flex;align-items:center;gap:4px;">'
+        +'<span style="width:10px;height:10px;border-radius:2px;background:'+ds.borderColor+';display:inline-block;"></span>'
+        +ds.label+'</span>';
+    }).join('');
+
+    // 圖三：固定 vs 彈性
+    if (fixedFlexChart) fixedFlexChart.destroy();
+    fixedFlexChart = new Chart(document.getElementById('fixed-flex-chart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label:'固定支出', data: fixed, backgroundColor:'rgba(91,140,90,0.85)', borderColor:'#5B8C5A', borderWidth:1 },
+          { label:'彈性支出', data: flexible, backgroundColor:'rgba(216,90,48,0.85)', borderColor:'#D85A30', borderWidth:1 }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ stacked:true },
+          y:{ stacked:true, beginAtZero:true, ticks:{ callback:function(v){ return 'NT$'+(v/1000)+'k'; } } }
+        }
+      }
+    });
+    setStatus('ok', '已連線 Google Sheets');
+  } catch(e) { setStatus('error', '載入趨勢失敗'); }
+}
+
 async function renderStats() {
   var month = document.getElementById('stat-month').value || currentMonth();
   await loadRecords(month);
@@ -709,6 +839,7 @@ async function renderStats() {
   barsEl.innerHTML = sorted.length ? sorted.map(function(item,j){
     return '<div class="cat-bar"><span class="cat-label">'+item.k+'</span><div class="cat-track"><div class="cat-fill-stat" style="width:'+Math.round(item.v/maxVal*100)+'%;background:'+CAT_COLORS[j%CAT_COLORS.length]+';height:100%;border-radius:4px;"></div></div><span class="cat-amt">NT$'+item.v.toLocaleString()+'</span></div>';
   }).join('') : '<div style="font-size:13px;color:#aaa;padding:8px 0;">本月無支出紀錄</div>';
+  renderTrendCharts();
 }
 
 var TABS = ['records','cards','stats','budget','keywords'];
