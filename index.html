@@ -250,7 +250,7 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 </nav>
 
 <script>
-var API = 'https://script.google.com/macros/s/AKfycbyUswjrumblfN5IwFx_h3l2AY2vMZZBO13xTdsnv3lTxXk2gDTcSqFa4FQ_aXzVjRts/exec';
+var API = 'https://budget-api-omega.vercel.app';
 var EXPENSE_CATS = ['餐飲','交通','購物','固定支出','居家','醫療','娛樂','教育','其他'];
 var INCOME_CATS = ['薪資','獎金','投資','副業','其他收入'];
 var CAT_COLORS = ['#378ADD','#1D9E75','#D85A30','#5B8C5A','#D4537E','#BA7517','#7F77DD','#639922','#888780'];
@@ -271,19 +271,53 @@ function currentMonth() { return new Date().toISOString().slice(0,7); }
 function daysInMonth() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth()+1, 0).getDate(); }
 function dayOfMonth() { return new Date().getDate(); }
 
-function jsonp(url) {
-  return new Promise(function(resolve, reject) {
-    var cbName = '__cb' + (++cbCount) + '_' + Date.now();
-    var script = document.createElement('script');
-    var timer = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 15000);
-    window[cbName] = function(data) { cleanup(); resolve(data); };
-    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
-    script.onerror = function() { cleanup(); reject(new Error('network error')); };
-    script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cbName;
-    document.head.appendChild(script);
-  });
+async function getToken() {
+  const { data: { session } } = await window._supabase.auth.getSession();
+  return session?.access_token;
 }
 
+async function jsonp(url) {
+  const token = await getToken();
+  const urlObj = new URL(url);
+  const action = urlObj.searchParams.get('action');
+  const params = Object.fromEntries(urlObj.searchParams.entries());
+  delete params.action;
+
+  let method = 'GET';
+  let fetchUrl = API + '/api/' + actionToPath(action, params);
+  let body = undefined;
+
+  if (['addRecord','updateRecord','deleteRecord','setBudget','addKeyword','deleteKeyword'].includes(action)) {
+    method = action.startsWith('delete') ? 'DELETE' : action.startsWith('update') ? 'PUT' : 'POST';
+    if (method !== 'DELETE') body = JSON.stringify(params);
+    if (method === 'DELETE') fetchUrl += '/' + (params.id || '');
+  }
+
+  const res = await fetch(fetchUrl, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body
+  });
+  return res.json();
+}
+
+function actionToPath(action, params) {
+  switch(action) {
+    case 'getRecords':    return 'records?month=' + params.month;
+    case 'addRecord':     return 'records';
+    case 'updateRecord':  return 'records/' + params.id;
+    case 'deleteRecord':  return 'records/' + params.id;
+    case 'getBudget':     return 'budgets';
+    case 'setBudget':     return 'budgets';
+    case 'getKeywords':   return 'keywords';
+    case 'addKeyword':    return 'keywords';
+    case 'deleteKeyword': return 'keywords';
+    default: return action;
+  }
+}
 function getPayClass(payment) {
   if (!payment) return 'pay-tag';
   if (payment === '台新') return 'pay-tag taishin';
@@ -864,6 +898,18 @@ async function init() {
 }
 
 init();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const _sb = window.supabase.createClient(
+    'https://osjwgbketxqskzywdmgw.supabase.co',
+    'sb_publishable_aI4W6_4lGTlWG4njs_4TyA_ZleKy...'  // 換成你的完整 publishable key
+  );
+  window._supabase = _sb;
+
+  _sb.auth.getSession().then(({ data: { session } }) => {
+    if (!session) window.location.href = 'login.html';
+  });
 </script>
 </body>
 </html>

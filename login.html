@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登入 - 家庭記帳</title>
+<style>
+  body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+  .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); width: 320px; }
+  h2 { margin: 0 0 1.5rem; text-align: center; color: #333; }
+  input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+  button { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-bottom: 0.75rem; }
+  .btn-google { background: #fff; border: 1px solid #ddd; color: #333; }
+  .btn-email { background: #4CAF50; color: white; }
+  .divider { text-align: center; margin: 0.5rem 0; color: #999; font-size: 0.875rem; }
+  .error { color: red; font-size: 0.875rem; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🏠 家庭記帳</h2>
+  <button class="btn-google" onclick="loginGoogle()">使用 Google 登入</button>
+  <div class="divider">或使用 Email</div>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="密碼">
+  <div class="error" id="err"></div>
+  <button class="btn-email" onclick="loginEmail()">登入 / 註冊</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const sb = window.supabase.createClient(
+    'https://osjwgbketxqskzywdmgw.supabase.co',
+    'sb_publishable_aI4W6_4lGTlWG4njs_4TyA_ZleKy...'  // 換成你的完整 publishable key
+  );
+
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = 'index.html';
+  });
+
+  async function loginGoogle() {
+    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/index.html' } });
+  }
+
+  async function loginEmail() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const err = document.getElementById('err');
+    err.textContent = '';
+
+    let { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error?.message?.includes('Invalid')) {
+      const res = await sb.auth.signUp({ email, password });
+      error = res.error;
+    }
+    if (error) { err.textContent = error.message; return; }
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>
