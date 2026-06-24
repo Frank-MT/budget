@@ -37,13 +37,22 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .select-wrap select { padding-right: 28px; }
 .add-btn { width: 100%; padding: 13px; font-size: 16px; font-weight: 500; border: none; border-radius: 12px; background: #1a1a1a; color: white; cursor: pointer; margin-top: 4px; }
 .add-btn:disabled { opacity: 0.5; }
-.record-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.record-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; transition: opacity 0.3s; }
 .record-item:last-child { border-bottom: none; }
 .record-left { flex: 1; min-width: 0; }
 .record-title { font-size: 14px; font-weight: 500; }
 .record-sub { font-size: 12px; color: #aaa; margin-top: 2px; display: flex; gap: 8px; align-items: center; }
 .record-amount { font-size: 15px; font-weight: 500; white-space: nowrap; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 4px 6px; cursor: pointer; flex-shrink: 0; }
+.edit-btn { background: none; border: none; color: #bbb; font-size: 15px; padding: 4px 6px; cursor: pointer; flex-shrink: 0; }
+.edit-form { background: #fafaf8; border-radius: 10px; padding: 12px; margin: 4px 0 8px; border: 1px solid #e8e8e8; overflow: hidden; max-height: 0; transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease; opacity: 0; padding-top: 0; padding-bottom: 0; }
+.edit-form.open { max-height: 400px; opacity: 1; padding: 12px; }
+.edit-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.edit-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.edit-form input, .edit-form select { padding: 8px 10px; font-size: 14px; }
+.edit-actions { display: flex; gap: 8px; margin-top: 4px; }
+.btn-cancel { flex: 1; padding: 9px; font-size: 14px; border: 1px solid #e0e0e0; border-radius: 10px; background: white; color: #666; cursor: pointer; }
+.btn-save-edit { flex: 1; padding: 9px; font-size: 14px; border: none; border-radius: 10px; background: #1a1a1a; color: white; cursor: pointer; font-weight: 500; }
 .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 5px; margin-right: 4px; }
 .type-in { background: #E1F5EE; color: #0F6E56; }
 .type-out { background: #FAECE7; color: #993C1D; }
@@ -55,6 +64,10 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .pay-tag.fubon { background: #E3F2FD; color: #1565C0; }
 .pay-tag.cash { background: #F5F5F5; color: #757575; }
 .pay-tag.transfer { background: #EDE7F6; color: #4527A0; }
+.undo-toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 12px 16px; border-radius: 12px; font-size: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; white-space: nowrap; animation: slideUp 0.2s ease; }
+.undo-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 500; }
+.undo-btn:active { background: rgba(255,255,255,0.2); }
+@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity:0; } to { transform: translateX(-50%) translateY(0); opacity:1; } }
 .empty-state { text-align: center; padding: 32px 0; color: #bbb; font-size: 14px; }
 
 /* 預算 */
@@ -281,32 +294,106 @@ async function addRecord() {
   var payment = type === 'expense' ? document.getElementById('f-payment').value : '';
   if (!amount || amount <= 0) { document.getElementById('f-amount').focus(); return; }
   if (!date) return;
-  var btn = document.getElementById('add-btn');
-  btn.disabled = true; btn.textContent = '新增中...';
-  setStatus('loading', '儲存中...');
+
   var id = Date.now();
+  var newRecord = { id: id, date: date, type: type, cat: cat, amount: amount, note: note, payment: payment };
+
+  // 樂觀更新：立刻插入列表
+  records.unshift(newRecord);
+  renderRecords();
+  updateMetrics();
+
+  // 清空表單
+  document.getElementById('f-amount').value = '';
+  document.getElementById('f-note').value = '';
+
+  // 新紀錄淡入效果
+  var newItem = document.getElementById('ri-'+id);
+  if (newItem) {
+    newItem.style.opacity = '0';
+    newItem.style.transition = 'opacity 0.3s';
+    setTimeout(function(){ newItem.style.opacity = '1'; }, 10);
+  }
+
+  // 背景同步到 Sheets
   var params = 'action=addRecord&id='+id+'&date='+date+'&type='+encodeURIComponent(type)
     +'&cat='+encodeURIComponent(cat)+'&amount='+amount
     +'&note='+encodeURIComponent(note)+'&payment='+encodeURIComponent(payment);
   try {
     await jsonp(API + '?' + params);
-    document.getElementById('f-amount').value = '';
-    document.getElementById('f-note').value = '';
-    await loadRecords(currentMonth());
-    renderRecords();
+    setStatus('ok', '已儲存');
     populateMonthSelect();
-  } catch(e) { setStatus('error', '儲存失敗'); }
-  btn.disabled = false; btn.textContent = '＋ 新增';
+  } catch(e) {
+    // 失敗時移除樂觀插入的紀錄
+    records = records.filter(function(r){ return r.id !== id; });
+    renderRecords();
+    setStatus('error', '儲存失敗，請重試');
+  }
 }
 
-async function deleteRecord(id, year) {
-  if (!confirm('確定刪除？')) return;
-  setStatus('loading', '刪除中...');
+var undoTimer = null;
+var pendingDelete = null;
+
+function deleteRecord(id, year) {
+  // 找到要刪除的紀錄
+  var target = records.find(function(r){ return String(r.id) === String(id); });
+  if (!target) return;
+
+  // 如果有上一個待刪除，立刻執行
+  if (pendingDelete) {
+    clearTimeout(undoTimer);
+    commitDelete(pendingDelete.id, pendingDelete.year);
+  }
+
+  // 樂觀更新：立刻從列表移除
+  var label = target.note ? target.cat + ' · ' + target.note : target.cat;
+  records = records.filter(function(r){ return String(r.id) !== String(id); });
+  renderRecords();
+  updateMetrics();
+
+  // 顯示 Undo toast
+  pendingDelete = { id: id, year: year, record: target };
+  showUndoToast(label);
+
+  // 3 秒後真正刪除
+  undoTimer = setTimeout(function() {
+    commitDelete(id, year);
+  }, 3000);
+}
+
+function showUndoToast(label) {
+  var existing = document.getElementById('undo-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'undo-toast';
+  toast.className = 'undo-toast';
+  toast.innerHTML = '已刪除「'+label+'」<button class="undo-btn" onclick="undoDelete()">撤銷</button>';
+  document.body.appendChild(toast);
+}
+
+function undoDelete() {
+  if (!pendingDelete) return;
+  clearTimeout(undoTimer);
+  records.unshift(pendingDelete.record);
+  records.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+  pendingDelete = null;
+  renderRecords();
+  updateMetrics();
+  var toast = document.getElementById('undo-toast');
+  if (toast) toast.remove();
+  setStatus('ok', '已復原');
+}
+
+async function commitDelete(id, year) {
+  pendingDelete = null;
+  var toast = document.getElementById('undo-toast');
+  if (toast) toast.remove();
   try {
     await jsonp(API + '?action=deleteRecord&id='+id+'&year='+year);
-    await loadRecords(currentMonth());
-    renderRecords();
-  } catch(e) { setStatus('error', '刪除失敗'); }
+    setStatus('ok', '已刪除');
+  } catch(e) {
+    setStatus('error', '刪除失敗，請重試');
+  }
 }
 
 function updateMetrics() {
@@ -360,16 +447,95 @@ function renderRecords() {
     var isIncome = r.type === 'income';
     var title = r.note ? r.cat + ' · ' + r.note : r.cat;
     var payTag = r.payment ? '<span class="'+getPayClass(r.payment)+'">'+r.payment+'</span>' : '';
-    html += '<div class="record-item">'
+    var catOptions = (isIncome ? INCOME_CATS : EXPENSE_CATS).map(function(c){
+      return '<option value="'+c+'"'+(c===r.cat?' selected':'')+'>'+c+'</option>';
+    }).join('');
+    var payOptions = ['台新','富邦','現金','轉帳'].map(function(p){
+      return '<option value="'+p+'"'+(p===r.payment?' selected':'')+'>'+p+'</option>';
+    }).join('');
+    html += '<div class="record-item" id="ri-'+r.id+'">'
       +'<div class="record-left">'
       +'<div class="record-title"><span class="badge '+(isIncome?'type-in':'type-out')+'">'+(isIncome?'收入':'支出')+'</span>'+title+'</div>'
       +'<div class="record-sub">'+r.date+(payTag?' '+payTag:'')+'</div>'
       +'</div>'
       +'<div class="record-amount '+(isIncome?'amount-in':'amount-out')+'">'+(isIncome?'+':'-')+'NT$'+Number(r.amount).toLocaleString()+'</div>'
+      +'<button class="edit-btn" onclick="toggleEdit(\''+r.id+'\')" aria-label="編輯">✏️</button>'
       +'<button class="del-btn" onclick="deleteRecord('+r.id+',\''+year+'\')" aria-label="刪除">×</button>'
+      +'</div>'
+      +'<div class="edit-form" id="ef-'+r.id+'">'
+      +'<div class="edit-row-2">'
+      +'<div class="form-group"><span class="form-label">分類</span><div class="select-wrap"><select id="ec-'+r.id+'">'+catOptions+'</select></div></div>'
+      +'<div class="form-group"><span class="form-label">付款方式</span><div class="select-wrap"><select id="ep-'+r.id+'">'+payOptions+'</select></div></div>'
+      +'</div>'
+      +'<div class="edit-row-3">'
+      +'<div class="form-group"><span class="form-label">金額</span><input type="number" id="ea-'+r.id+'" value="'+r.amount+'" inputmode="numeric" /></div>'
+      +'<div class="form-group" style="grid-column:span 2;"><span class="form-label">備註</span><input type="text" id="en-'+r.id+'" value="'+(r.note||'')+'" /></div>'
+      +'</div>'
+      +'<div class="form-group"><span class="form-label">日期</span><input type="date" id="ed-'+r.id+'" value="'+r.date+'" /></div>'
+      +'<div class="edit-actions">'
+      +'<button class="btn-cancel" onclick="toggleEdit(\''+r.id+'\')">取消</button>'
+      +'<button class="btn-save-edit" onclick="saveEdit('+r.id+',\''+year+'\',\''+r.type+'\')">儲存</button>'
+      +'</div>'
       +'</div>';
   }
   el.innerHTML = html;
+}
+
+function toggleEdit(id) {
+  var ef = document.getElementById('ef-'+id);
+  ef.classList.toggle('open');
+  // 展開時 scroll 到編輯表單
+  if (ef.classList.contains('open')) {
+    setTimeout(function(){ ef.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 150);
+  }
+}
+
+async function saveEdit(id, year, type) {
+  var cat = document.getElementById('ec-'+id).value;
+  var payment = document.getElementById('ep-'+id).value;
+  var amount = parseFloat(document.getElementById('ea-'+id).value);
+  var note = document.getElementById('en-'+id).value.trim();
+  var date = document.getElementById('ed-'+id).value;
+  if (!amount || amount <= 0) return;
+
+  // 找到原始紀錄備份
+  var original = records.find(function(r){ return String(r.id) === String(id); });
+  var backup = original ? Object.assign({}, original) : null;
+
+  // 按鈕 loading 狀態
+  var saveBtn = document.querySelector('#ef-'+id+' .btn-save-edit');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '儲存中...'; }
+
+  // 樂觀更新：立刻更新資料
+  if (original) {
+    original.cat = cat;
+    original.payment = payment;
+    original.amount = amount;
+    original.note = note;
+    original.date = date;
+  }
+
+  // 先收起表單，再 render
+  var ef = document.getElementById('ef-'+id);
+  if (ef) ef.classList.remove('open');
+
+  setTimeout(function() {
+    renderRecords();
+  }, 300);
+
+  // 背景同步
+  var params = 'action=updateRecord&id='+id+'&year='+year+'&date='+date+'&type='+encodeURIComponent(type)
+    +'&cat='+encodeURIComponent(cat)+'&amount='+amount
+    +'&note='+encodeURIComponent(note)+'&payment='+encodeURIComponent(payment);
+  try {
+    await jsonp(API + '?' + params);
+    setStatus('ok', '已更新');
+  } catch(e) {
+    // 失敗：還原舊資料
+    if (backup && original) Object.assign(original, backup);
+    renderRecords();
+    setStatus('error', '更新失敗，請重試');
+  }
 }
 
 async function renderCards() {
