@@ -897,18 +897,19 @@ async function init() {
   renderRecords();
 }
 
-init();
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   const _sb = window.supabase.createClient(
     'https://osjwgbketxqskzywdmgw.supabase.co',
-    'sb_publishable_aI4W6_4lGTlW64njs_4TyA_ZleKyrR4'  // 換成你的完整 publishable key
+    'sb_publishable_aI4W6_4lGTlWG4njs_4TyA_ZleKy...'  // 換成你的完整 publishable key
   );
   window._supabase = _sb;
 
   _sb.auth.getSession().then(({ data: { session } }) => {
     if (!session) window.location.href = 'login.html';
+    else init();
   });
 </script>
 </body>
