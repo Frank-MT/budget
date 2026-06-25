@@ -290,7 +290,6 @@ async function jsonp(url) {
   if (['addRecord','updateRecord','deleteRecord','setBudget','addKeyword','deleteKeyword'].includes(action)) {
     method = action.startsWith('delete') ? 'DELETE' : action.startsWith('update') ? 'PUT' : 'POST';
     if (method !== 'DELETE') body = JSON.stringify(params);
-    if (method === 'DELETE') fetchUrl += '/' + (params.id || '');
   }
 
   const res = await fetch(fetchUrl, {
