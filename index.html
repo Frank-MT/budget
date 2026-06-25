@@ -909,8 +909,7 @@ async function init() {
   window._supabase = _sb;
 
   _sb.auth.getSession().then(({ data: { session } }) => {
-    if (!session) window.location.href = 'login.html';
-    else init();
+    if (!session) window.location.href = 'login.html'; else init();
   });
 </script>
 </body>
