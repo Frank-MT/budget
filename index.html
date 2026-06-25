@@ -301,7 +301,29 @@ async function jsonp(url) {
     },
     body
   });
-  return res.json();
+  const json = await res.json();
+  
+  // 轉換 keywords 格式
+  if (action === 'getKeywords') {
+    const DEFAULTS = {
+      餐飲: ['午餐','晚餐','早餐','咖啡','飲料','便當','火鍋'],
+      交通: ['捷運','公車','油','加油','停車','uber'],
+      購物: ['超市','量販','網購','蝦皮','momo'],
+      固定支出: ['房租','水費','電費','瓦斯','網路','管理費'],
+      居家: ['家具','修繕','清潔','日用品'],
+      醫療: ['診所','藥','醫院','掛號'],
+      娛樂: ['電影','ktv','遊戲','netflix'],
+      教育: ['學費','補習','課程'],
+    };
+    const custom = {};
+    (json.keywords || []).forEach(function(k) {
+      if (!custom[k.cat]) custom[k.cat] = [];
+      custom[k.cat].push(k.keyword);
+    });
+    return { defaults: DEFAULTS, custom: custom };
+  }
+  
+  return json;
 }
 
 function actionToPath(action, params) {
