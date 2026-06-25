@@ -323,6 +323,15 @@ async function jsonp(url) {
     return { defaults: DEFAULTS, custom: custom };
   }
   
+  // 轉換 budgets 格式
+  if (action === 'getBudget') {
+    const budget = {};
+    (json.budgets || []).forEach(function(b) {
+      budget[b.cat] = b.amount;
+    });
+    return { budget: budget };
+  }
+
   return json;
 }
 
