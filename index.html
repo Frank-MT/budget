@@ -315,6 +315,7 @@ function actionToPath(action, params) {
     case 'getKeywords':   return 'keywords';
     case 'addKeyword':    return 'keywords';
     case 'deleteKeyword': return 'keywords';
+    case 'getMonthlyTrend': return 'records/monthly-trend?months=' + params.months;
     default: return action;
   }
 }
