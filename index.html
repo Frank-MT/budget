@@ -1130,6 +1130,7 @@ function switchTab(tab) {
   if (tab==='cards') renderCards();
   if (tab === 'recurring') loadRecurring();
   if (tab === 'payment') renderPaymentList();
+  if (tab === 'records') { renderRecords(); updateRecordMonthUI(); }
 }
 
 async function init() {
