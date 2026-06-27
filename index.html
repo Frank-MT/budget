@@ -271,6 +271,23 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
             <option value="轉帳">轉帳</option>
           </select>
         </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:13px;color:#666;">提醒月份</label>
+          <div id="rf-months" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="1" checked> 1月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="2" checked> 2月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="3" checked> 3月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="4" checked> 4月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="5" checked> 5月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="6" checked> 6月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="7" checked> 7月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="8" checked> 8月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="9" checked> 9月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="10" checked> 10月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="11" checked> 11月</label>
+            <label style="display:flex;align-items:center;gap:3px;font-size:13px;"><input type="checkbox" value="12" checked> 12月</label>
+          </div>
+        </div>
         <div style="margin-bottom:14px;">
           <label style="font-size:13px;color:#666;">備註（選填）</label>
           <input id="rf-note" type="text" placeholder="例：房東帳號末4碼1234" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
@@ -1004,12 +1021,14 @@ function renderRecurring() {
   var html = '';
   recurringData.forEach(function(item) {
     var amtStr = item.amount ? 'NT$' + Number(item.amount).toLocaleString() : '金額不固定';
+    var months = item.months || [1,2,3,4,5,6,7,8,9,10,11,12];
+    var monthStr = months.length === 12 ? '每月' : months.map(function(m){ return m+'月'; }).join('・');
     var payStr = item.payment ? '・' + item.payment : '';
     var enabledStyle = item.enabled ? '' : 'opacity:0.4;';
     html += '<div style="' + enabledStyle + 'display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #f0f0f0;">'
       + '<div style="flex:1;">'
       + '<div style="font-size:15px;font-weight:500;">' + item.name + '</div>'
-      + '<div style="font-size:13px;color:#aaa;margin-top:3px;">每月 ' + item.due_day + ' 號　' + amtStr + payStr + '</div>'
+      + '<div style="font-size:13px;color:#aaa;margin-top:3px;">' + monthStr + ' ' + item.due_day + ' 號　' + amtStr + payStr + '</div>'
       + (item.note ? '<div style="font-size:12px;color:#bbb;margin-top:2px;">' + item.note + '</div>' : '')
       + '</div>'
       + '<div style="display:flex;gap:8px;align-items:center;">'
@@ -1033,6 +1052,9 @@ function showRecurringForm() {
   document.getElementById('rf-amount').value = '';
   document.getElementById('rf-payment').value = '';
   document.getElementById('rf-note').value = '';
+  document.querySelectorAll('#rf-months input[type=checkbox]').forEach(function(cb) {
+    cb.checked = true;
+  });
   document.getElementById('recurring-form').style.display = 'block';
 }
 
@@ -1049,6 +1071,10 @@ function editRecurring(id) {
   document.getElementById('rf-amount').value = item.amount || '';
   document.getElementById('rf-payment').value = item.payment || '';
   document.getElementById('rf-note').value = item.note || '';
+  var months = item.months || [1,2,3,4,5,6,7,8,9,10,11,12];
+  document.querySelectorAll('#rf-months input[type=checkbox]').forEach(function(cb) {
+    cb.checked = months.includes(parseInt(cb.value));
+  });
   document.getElementById('recurring-form').style.display = 'block';
   document.getElementById('recurring-form').scrollIntoView({ behavior: 'smooth' });
 }
@@ -1064,12 +1090,19 @@ async function saveRecurring() {
   if (!name) { alert('請輸入名稱'); return; }
   if (!dueDay || dueDay < 1 || dueDay > 31) { alert('請輸入正確的繳費日（1-31）'); return; }
 
+  var months = [];
+  document.querySelectorAll('#rf-months input[type=checkbox]').forEach(function(cb) {
+    if (cb.checked) months.push(parseInt(cb.value));
+  });
+  if (!months.length) { alert('請至少選擇一個月份'); return; }
+
   var payload = {
     name: name,
     due_day: dueDay,
     amount: amount ? parseInt(amount) : null,
     payment: payment,
     note: note,
+    months: months,
     enabled: true
   };
 
