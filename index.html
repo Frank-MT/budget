@@ -1314,30 +1314,61 @@ async function savePaymentMethod() {
 
   var payload = { name: name, type: type, bill_day: billDay, due_day: dueDay };
 
-  try {
-    var token = await getToken();
-    if (id) {
+  document.getElementById('payment-form').style.display = 'none';
+
+  if (id) {
+    // 編輯：樂觀更新
+    var item = paymentMethodsData.find(function(m){ return m.id === id; });
+    var backup = item ? Object.assign({}, item) : null;
+    if (item) Object.assign(item, payload);
+    renderPaymentList();
+    updatePaymentSelects();
+
+    try {
+      var token = await getToken();
       await fetch(API + '/api/payment-methods/' + id, {
         method: 'PUT',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      var item = paymentMethodsData.find(function(m){ return m.id === id; });
-      if (item) Object.assign(item, payload);
-    } else {
+      setStatus('ok', '已儲存');
+    } catch(e) {
+      if (backup && item) Object.assign(item, backup);
+      renderPaymentList();
+      updatePaymentSelects();
+      alert('儲存失敗，請重試');
+    }
+  } else {
+    // 新增：先用 temp id 插入
+    var tempId = 'temp-' + Date.now();
+    var tempItem = Object.assign({ id: tempId, enabled: true }, payload);
+    paymentMethodsData.push(tempItem);
+    renderPaymentList();
+    updatePaymentSelects();
+
+    try {
+      var token = await getToken();
       var res = await fetch(API + '/api/payment-methods', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       var data = await res.json();
-      if (data.payment_method) paymentMethodsData.push(data.payment_method);
+      // 用真實資料換掉 temp
+      var tempIdx = paymentMethodsData.findIndex(function(m){ return m.id === tempId; });
+      if (tempIdx !== -1 && data.payment_method) {
+        paymentMethodsData[tempIdx] = data.payment_method;
+        renderPaymentList();
+        updatePaymentSelects();
+      }
+      setStatus('ok', '已儲存');
+    } catch(e) {
+      paymentMethodsData = paymentMethodsData.filter(function(m){ return m.id !== tempId; });
+      renderPaymentList();
+      updatePaymentSelects();
+      alert('儲存失敗，請重試');
     }
-    document.getElementById('payment-form').style.display = 'none';
-    updatePaymentSelects();
-    renderPaymentList();
-    setStatus('ok', '已儲存');
-  } catch(e) { alert('儲存失敗，請重試'); }
+  }
 }
 
 async function togglePaymentMethod(id, enabled) {
