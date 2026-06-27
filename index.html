@@ -962,7 +962,7 @@ async function renderStats() {
   renderTrendCharts();
 }
 
-var TABS = ['records','cards','stats','budget','keywords'];
+var TABS = ['records','cards','stats','budget','keywords','recurring'];
 function switchTab(tab) {
   TABS.forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
