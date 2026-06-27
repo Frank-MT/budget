@@ -254,6 +254,47 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
     </div>
   </div>
 
+  <div id="tab-payment" style="display:none;">
+    <div class="card">
+      <div class="section-title">付款方式管理</div>
+      <button onclick="showPaymentForm()" style="width:100%;padding:12px;background:#1a1a1a;color:white;border:none;border-radius:10px;font-size:15px;cursor:pointer;margin-bottom:16px;">＋ 新增付款方式</button>
+
+      <div id="payment-form" style="display:none;background:#f8f8f8;border-radius:10px;padding:16px;margin-bottom:16px;">
+        <input type="hidden" id="pf-id">
+        <div style="margin-bottom:10px;">
+          <label style="font-size:13px;color:#666;">名稱</label>
+          <input id="pf-name" type="text" placeholder="例：玉山、Line Pay" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:13px;color:#666;">類型</label>
+          <select id="pf-type" onchange="toggleCreditCardFields()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+            <option value="credit_card">信用卡</option>
+            <option value="cash">現金</option>
+            <option value="transfer">轉帳</option>
+          </select>
+        </div>
+        <div id="pf-card-fields">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div>
+              <label style="font-size:13px;color:#666;">結帳日</label>
+              <input id="pf-bill-day" type="number" min="1" max="31" placeholder="例：7" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+            </div>
+            <div>
+              <label style="font-size:13px;color:#666;">繳費日</label>
+              <input id="pf-due-day" type="number" min="1" max="31" placeholder="例：22" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onclick="cancelPaymentForm()" style="padding:10px;background:#f0f0f0;border:none;border-radius:8px;font-size:15px;cursor:pointer;">取消</button>
+          <button onclick="savePaymentMethod()" style="padding:10px;background:#1a1a1a;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;">儲存</button>
+        </div>
+      </div>
+
+      <div id="payment-list"><div class="empty-state">載入中...</div></div>
+    </div>
+  </div>
+
   <div id="tab-recurring" style="display:none;">
     <div class="card">
       <div class="section-title">固定支出設定</div>
@@ -326,6 +367,7 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
   <button class="nav-btn" onclick="switchTab('budget')" id="nav-budget"><span class="nav-icon">🎯</span>預算</button>
   <button class="nav-btn" onclick="switchTab('keywords')" id="nav-keywords"><span class="nav-icon">🏷️</span>分類</button>
   <button class="nav-btn" onclick="switchTab('recurring')" id="nav-recurring"><span class="nav-icon">🔔</span>固定</button>
+  <button class="nav-btn" onclick="switchTab('payment')" id="nav-payment"><span class="nav-icon">💰</span>付款</button>
 </nav>
 
 <script>
@@ -340,6 +382,42 @@ var keywordsData = { defaults: {}, custom: {} };
 var trendChart = null;
 var pieChart = null;
 var cbCount = 0;
+var paymentMethodsData = [];
+
+async function loadPaymentMethods() {
+  try {
+    var token = await getToken();
+    var res = await fetch(API + '/api/payment-methods', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    paymentMethodsData = data.payment_methods || [];
+    updatePaymentSelects();
+  } catch(e) {}
+}
+
+function updatePaymentSelects() {
+  var methods = paymentMethodsData.filter(function(m){ return m.enabled; });
+  var options = methods.map(function(m){
+    return '<option value="'+m.name+'">'+m.name+'</option>';
+  }).join('');
+
+  // 新增表單的付款方式
+  var fPayment = document.getElementById('f-payment');
+  if (fPayment) {
+    var prev = fPayment.value;
+    fPayment.innerHTML = options;
+    if (methods.find(function(m){ return m.name === prev; })) fPayment.value = prev;
+  }
+
+  // 固定支出表單的付款方式
+  var rfPayment = document.getElementById('rf-payment');
+  if (rfPayment) {
+    var prevRf = rfPayment.value;
+    rfPayment.innerHTML = '<option value="">未指定</option>' + options;
+    if (methods.find(function(m){ return m.name === prevRf; })) rfPayment.value = prevRf;
+  }
+}
 
 function setStatus(state, text) {
   document.getElementById('status-dot').className = 'dot' + (state !== 'ok' ? ' ' + state : '');
@@ -634,8 +712,8 @@ function renderRecords() {
     var catOptions = (isIncome ? INCOME_CATS : EXPENSE_CATS).map(function(c){
       return '<option value="'+c+'"'+(c===r.cat?' selected':'')+'>'+c+'</option>';
     }).join('');
-    var payOptions = ['台新','富邦','現金','轉帳'].map(function(p){
-      return '<option value="'+p+'"'+(p===r.payment?' selected':'')+'>'+p+'</option>';
+    var payOptions = paymentMethodsData.filter(function(m){ return m.enabled; }).map(function(m){
+      return '<option value="'+m.name+'"'+(m.name===r.payment?' selected':'')+'>'+m.name+'</option>';
     }).join('');
     html += '<div class="record-item" id="ri-'+r.id+'">'
       +'<div class="record-left">'
@@ -730,8 +808,7 @@ async function renderCards() {
     var data = await jsonp(API + '?action=getCardSummary');
     var cards = data.cards || {};
     var html = '';
-    var cardNames = ['台新','富邦'];
-    cardNames.forEach(function(name) {
+    Object.keys(cards).forEach(function(name) {
       var c = cards[name];
       if (!c) return;
       var days = c.daysUntilDue;
@@ -994,7 +1071,7 @@ async function renderStats() {
   renderTrendCharts();
 }
 
-var TABS = ['records','cards','stats','budget','keywords','recurring'];
+var TABS = ['records','cards','stats','budget','keywords','recurring','payment'];
 function switchTab(tab) {
   TABS.forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
@@ -1005,6 +1082,7 @@ function switchTab(tab) {
   if (tab==='keywords') renderKeywords();
   if (tab==='cards') renderCards();
   if (tab === 'recurring') loadRecurring();
+  if (tab === 'payment') renderPaymentList();
 }
 
 async function init() {
@@ -1012,7 +1090,7 @@ async function init() {
   updateCats();
   document.getElementById('f-type').addEventListener('change', updateCats);
   populateMonthSelect();
-  await Promise.all([loadBudget(), loadKeywords(), loadRecords(currentMonth())]);
+  await Promise.all([loadBudget(), loadKeywords(), loadRecords(currentMonth()), loadPaymentMethods()]);
   renderRecords();
 }
 
@@ -1188,6 +1266,152 @@ async function deleteRecurring(id) {
     renderRecurring();
     alert('刪除失敗');
   }
+}
+
+// ===== 付款方式設定 =====
+
+function toggleCreditCardFields() {
+  var type = document.getElementById('pf-type').value;
+  document.getElementById('pf-card-fields').style.display = type === 'credit_card' ? '' : 'none';
+}
+
+function showPaymentForm() {
+  document.getElementById('pf-id').value = '';
+  document.getElementById('pf-name').value = '';
+  document.getElementById('pf-type').value = 'credit_card';
+  document.getElementById('pf-bill-day').value = '';
+  document.getElementById('pf-due-day').value = '';
+  toggleCreditCardFields();
+  document.getElementById('payment-form').style.display = 'block';
+}
+
+function cancelPaymentForm() {
+  document.getElementById('payment-form').style.display = 'none';
+}
+
+function editPaymentMethod(id) {
+  var item = paymentMethodsData.find(function(m){ return m.id === id; });
+  if (!item) return;
+  document.getElementById('pf-id').value = item.id;
+  document.getElementById('pf-name').value = item.name;
+  document.getElementById('pf-type').value = item.type;
+  document.getElementById('pf-bill-day').value = item.bill_day || '';
+  document.getElementById('pf-due-day').value = item.due_day || '';
+  toggleCreditCardFields();
+  document.getElementById('payment-form').style.display = 'block';
+  document.getElementById('payment-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function savePaymentMethod() {
+  var id = document.getElementById('pf-id').value;
+  var name = document.getElementById('pf-name').value.trim();
+  var type = document.getElementById('pf-type').value;
+  var billDay = parseInt(document.getElementById('pf-bill-day').value) || null;
+  var dueDay = parseInt(document.getElementById('pf-due-day').value) || null;
+
+  if (!name) { alert('請輸入名稱'); return; }
+  if (type === 'credit_card' && (!billDay || !dueDay)) { alert('信用卡請填寫結帳日和繳費日'); return; }
+
+  var payload = { name: name, type: type, bill_day: billDay, due_day: dueDay };
+
+  try {
+    var token = await getToken();
+    if (id) {
+      await fetch(API + '/api/payment-methods/' + id, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      var item = paymentMethodsData.find(function(m){ return m.id === id; });
+      if (item) Object.assign(item, payload);
+    } else {
+      var res = await fetch(API + '/api/payment-methods', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      var data = await res.json();
+      if (data.payment_method) paymentMethodsData.push(data.payment_method);
+    }
+    document.getElementById('payment-form').style.display = 'none';
+    updatePaymentSelects();
+    renderPaymentList();
+    setStatus('ok', '已儲存');
+  } catch(e) { alert('儲存失敗，請重試'); }
+}
+
+async function togglePaymentMethod(id, enabled) {
+  var item = paymentMethodsData.find(function(m){ return m.id === id; });
+  if (item) item.enabled = enabled;
+  renderPaymentList();
+  updatePaymentSelects();
+  try {
+    var token = await getToken();
+    await fetch(API + '/api/payment-methods/' + id, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: enabled })
+    });
+  } catch(e) {
+    if (item) item.enabled = !enabled;
+    renderPaymentList();
+    alert('更新失敗');
+  }
+}
+
+async function deletePaymentMethod(id) {
+  var item = paymentMethodsData.find(function(m){ return m.id === id; });
+  var name = item ? item.name : '';
+  if (!confirm('確定刪除「' + name + '」？\n過去的記帳紀錄不受影響。')) return;
+
+  var backup = paymentMethodsData.slice();
+  paymentMethodsData = paymentMethodsData.filter(function(m){ return m.id !== id; });
+  renderPaymentList();
+  updatePaymentSelects();
+
+  try {
+    var token = await getToken();
+    await fetch(API + '/api/payment-methods/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+  } catch(e) {
+    paymentMethodsData = backup;
+    renderPaymentList();
+    alert('刪除失敗');
+  }
+}
+
+function renderPaymentList() {
+  var el = document.getElementById('payment-list');
+  if (!el) return;
+  if (!paymentMethodsData.length) {
+    el.innerHTML = '<div class="empty-state">尚無付款方式</div>';
+    return;
+  }
+  var typeLabel = { credit_card: '信用卡', cash: '現金', transfer: '轉帳' };
+  var html = '';
+  paymentMethodsData.forEach(function(item) {
+    var enabledStyle = item.enabled ? '' : 'opacity:0.4;';
+    var cardInfo = item.type === 'credit_card' && item.bill_day
+      ? '・結帳 '+item.bill_day+' 號 / 繳費 '+item.due_day+' 號' : '';
+    html += '<div style="'+enabledStyle+'display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #f0f0f0;">'
+      + '<div style="flex:1;">'
+      + '<div style="font-size:15px;font-weight:500;">'+item.name+'</div>'
+      + '<div style="font-size:13px;color:#aaa;margin-top:3px;">'+typeLabel[item.type]+cardInfo+'</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;align-items:center;">'
+      + '<label style="position:relative;display:inline-block;width:44px;height:24px;">'
+      + '<input type="checkbox"'+(item.enabled?' checked':'')+' onchange="togglePaymentMethod(\''+item.id+'\',this.checked)" style="opacity:0;width:0;height:0;">'
+      + '<span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:'+(item.enabled?'#1a1a1a':'#ccc')+';border-radius:24px;transition:.3s;">'
+      + '<span style="position:absolute;height:18px;width:18px;left:'+(item.enabled?'23px':'3px')+';bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>'
+      + '</span></label>'
+      + '<button onclick="editPaymentMethod(\''+item.id+'\')" style="background:none;border:none;font-size:18px;cursor:pointer;">✏️</button>'
+      + '<button onclick="deletePaymentMethod(\''+item.id+'\')" style="background:none;border:none;font-size:18px;cursor:pointer;">🗑️</button>'
+      + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
 }
 
 </script>
