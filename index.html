@@ -238,6 +238,52 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
       <div id="keyword-list"><div class="empty-state">載入中...</div></div>
     </div>
   </div>
+
+  <div id="tab-recurring" style="display:none;">
+    <div class="card">
+      <div class="section-title">固定支出設定</div>
+      <button onclick="showRecurringForm()" style="width:100%;padding:12px;background:#1a1a1a;color:white;border:none;border-radius:10px;font-size:15px;cursor:pointer;margin-bottom:16px;">＋ 新增固定支出</button>
+
+      <!-- 新增/編輯表單 -->
+      <div id="recurring-form" style="display:none;background:#f8f8f8;border-radius:10px;padding:16px;margin-bottom:16px;">
+        <input type="hidden" id="rf-id">
+        <div style="margin-bottom:10px;">
+          <label style="font-size:13px;color:#666;">名稱</label>
+          <input id="rf-name" type="text" placeholder="例：房租、水費、瓦斯" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="font-size:13px;color:#666;">每月幾號</label>
+            <input id="rf-due-day" type="number" min="1" max="31" placeholder="例：5" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:13px;color:#666;">金額（選填）</label>
+            <input id="rf-amount" type="number" placeholder="不固定可留空" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:13px;color:#666;">付款方式</label>
+          <select id="rf-payment" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+            <option value="">未指定</option>
+            <option value="台新">台新</option>
+            <option value="富邦">富邦</option>
+            <option value="現金">現金</option>
+            <option value="轉帳">轉帳</option>
+          </select>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:13px;color:#666;">備註（選填）</label>
+          <input id="rf-note" type="text" placeholder="例：房東帳號末4碼1234" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onclick="cancelRecurringForm()" style="padding:10px;background:#f0f0f0;border:none;border-radius:8px;font-size:15px;cursor:pointer;">取消</button>
+          <button onclick="saveRecurring()" style="padding:10px;background:#1a1a1a;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;">儲存</button>
+        </div>
+      </div>
+
+      <div id="recurring-list"><div class="empty-state">載入中...</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- 底部導覽 -->
@@ -247,6 +293,7 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
   <button class="nav-btn" onclick="switchTab('stats')" id="nav-stats"><span class="nav-icon">📊</span>統計</button>
   <button class="nav-btn" onclick="switchTab('budget')" id="nav-budget"><span class="nav-icon">🎯</span>預算</button>
   <button class="nav-btn" onclick="switchTab('keywords')" id="nav-keywords"><span class="nav-icon">🏷️</span>分類</button>
+  <button class="nav-btn" onclick="switchTab('recurring')" id="nav-recurring"><span class="nav-icon">🔔</span>固定</button>
 </nav>
 
 <script>
@@ -276,7 +323,7 @@ async function getToken() {
   return session?.access_token;
 }
 
-async function jsonp(url) {
+async function jsonp(url, forceMethod, forceBody) {
   const token = await getToken();
   const urlObj = new URL(url);
   const action = urlObj.searchParams.get('action');
@@ -287,7 +334,10 @@ async function jsonp(url) {
   let fetchUrl = API + '/api/' + actionToPath(action, params);
   let body = undefined;
 
-  if (['addRecord','updateRecord','deleteRecord','setBudget','addKeyword','deleteKeyword'].includes(action)) {
+  if (forceMethod) {
+    method = forceMethod;
+    body = forceBody ? JSON.stringify(forceBody) : undefined;
+  } else if (['addRecord','updateRecord','deleteRecord','setBudget','addKeyword','deleteKeyword'].includes(action)) {
     method = action.startsWith('delete') ? 'DELETE' : action.startsWith('update') ? 'PUT' : 'POST';
     if (method !== 'DELETE') body = JSON.stringify(params);
   }
@@ -346,7 +396,11 @@ function actionToPath(action, params) {
     case 'addKeyword':    return 'keywords';
     case 'deleteKeyword': return 'keywords';
     case 'getMonthlyTrend': return 'records/monthly-trend?months=' + params.months;
-    case 'getCardSummary': return 'records/card-summary';
+    case 'getCardSummary':    return 'records/card-summary';
+    case 'getRecurring':      return 'recurring';
+    case 'addRecurring':      return 'recurring';
+    case 'updateRecurring':   return 'recurring/' + params.id;
+    case 'deleteRecurring':   return 'recurring/' + params.id;
     default: return action;
   }
 }
@@ -918,6 +972,7 @@ function switchTab(tab) {
   if (tab==='budget') renderBudgetSettings();
   if (tab==='keywords') renderKeywords();
   if (tab==='cards') renderCards();
+  if (tab === 'recurring') loadRecurring();
 }
 
 async function init() {
@@ -927,6 +982,124 @@ async function init() {
   populateMonthSelect();
   await Promise.all([loadBudget(), loadKeywords(), loadRecords(currentMonth())]);
   renderRecords();
+}
+
+// ===== 固定支出 =====
+var recurringData = [];
+
+async function loadRecurring() {
+  try {
+    var data = await jsonp(API + '?action=getRecurring');
+    recurringData = data.recurring || [];
+    renderRecurring();
+  } catch(e) {}
+}
+
+function renderRecurring() {
+  var el = document.getElementById('recurring-list');
+  if (!recurringData.length) {
+    el.innerHTML = '<div class="empty-state">尚無固定支出設定</div>';
+    return;
+  }
+  var html = '';
+  recurringData.forEach(function(item) {
+    var amtStr = item.amount ? 'NT$' + Number(item.amount).toLocaleString() : '金額不固定';
+    var payStr = item.payment ? '・' + item.payment : '';
+    var enabledStyle = item.enabled ? '' : 'opacity:0.4;';
+    html += '<div style="' + enabledStyle + 'display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #f0f0f0;">'
+      + '<div style="flex:1;">'
+      + '<div style="font-size:15px;font-weight:500;">' + item.name + '</div>'
+      + '<div style="font-size:13px;color:#aaa;margin-top:3px;">每月 ' + item.due_day + ' 號　' + amtStr + payStr + '</div>'
+      + (item.note ? '<div style="font-size:12px;color:#bbb;margin-top:2px;">' + item.note + '</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;gap:8px;align-items:center;">'
+      + '<label style="position:relative;display:inline-block;width:44px;height:24px;">'
+      + '<input type="checkbox" ' + (item.enabled ? 'checked' : '') + ' onchange="toggleRecurring(\'' + item.id + '\',this.checked)" style="opacity:0;width:0;height:0;">'
+      + '<span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:' + (item.enabled ? '#1a1a1a' : '#ccc') + ';border-radius:24px;transition:.3s;">'
+      + '<span style="position:absolute;height:18px;width:18px;left:' + (item.enabled ? '23px' : '3px') + ';bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>'
+      + '</span></label>'
+      + '<button onclick="editRecurring(\'' + item.id + '\')" style="background:none;border:none;font-size:18px;cursor:pointer;">✏️</button>'
+      + '<button onclick="deleteRecurring(\'' + item.id + '\')" style="background:none;border:none;font-size:18px;cursor:pointer;">🗑️</button>'
+      + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function showRecurringForm() {
+  document.getElementById('rf-id').value = '';
+  document.getElementById('rf-name').value = '';
+  document.getElementById('rf-due-day').value = '';
+  document.getElementById('rf-amount').value = '';
+  document.getElementById('rf-payment').value = '';
+  document.getElementById('rf-note').value = '';
+  document.getElementById('recurring-form').style.display = 'block';
+}
+
+function cancelRecurringForm() {
+  document.getElementById('recurring-form').style.display = 'none';
+}
+
+function editRecurring(id) {
+  var item = recurringData.find(function(r){ return r.id === id; });
+  if (!item) return;
+  document.getElementById('rf-id').value = item.id;
+  document.getElementById('rf-name').value = item.name;
+  document.getElementById('rf-due-day').value = item.due_day;
+  document.getElementById('rf-amount').value = item.amount || '';
+  document.getElementById('rf-payment').value = item.payment || '';
+  document.getElementById('rf-note').value = item.note || '';
+  document.getElementById('recurring-form').style.display = 'block';
+  document.getElementById('recurring-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveRecurring() {
+  var id = document.getElementById('rf-id').value;
+  var name = document.getElementById('rf-name').value.trim();
+  var dueDay = parseInt(document.getElementById('rf-due-day').value);
+  var amount = document.getElementById('rf-amount').value;
+  var payment = document.getElementById('rf-payment').value;
+  var note = document.getElementById('rf-note').value.trim();
+
+  if (!name) { alert('請輸入名稱'); return; }
+  if (!dueDay || dueDay < 1 || dueDay > 31) { alert('請輸入正確的繳費日（1-31）'); return; }
+
+  var payload = {
+    name: name,
+    due_day: dueDay,
+    amount: amount ? parseInt(amount) : null,
+    payment: payment,
+    note: note,
+    enabled: true
+  };
+
+  try {
+    if (id) {
+      await jsonp(API + '?action=updateRecurring&id=' + id, 'PUT', payload);
+    } else {
+      await jsonp(API + '?action=addRecurring', 'POST', payload);
+    }
+    document.getElementById('recurring-form').style.display = 'none';
+    await loadRecurring();
+  } catch(e) { alert('儲存失敗，請重試'); }
+}
+
+async function toggleRecurring(id, enabled) {
+  try {
+    await jsonp(API + '?action=updateRecurring&id=' + id, 'PUT', { enabled: enabled });
+    var item = recurringData.find(function(r){ return r.id === id; });
+    if (item) item.enabled = enabled;
+    renderRecurring();
+  } catch(e) { alert('更新失敗'); }
+}
+
+async function deleteRecurring(id) {
+  if (!confirm('確定刪除？')) return;
+  try {
+    await jsonp(API + '?action=deleteRecurring&id=' + id, 'DELETE', {});
+    recurringData = recurringData.filter(function(r){ return r.id !== id; });
+    renderRecurring();
+  } catch(e) { alert('刪除失敗'); }
 }
 
 
