@@ -1128,35 +1128,67 @@ async function saveRecurring() {
     enabled: true
   };
 
+  // 樂觀更新
+  if (id) {
+    var item = recurringData.find(function(r){ return r.id === id; });
+    if (item) Object.assign(item, payload);
+  } else {
+    var tempItem = Object.assign({ id: 'temp-' + Date.now() }, payload);
+    recurringData.push(tempItem);
+  }
+
+  document.getElementById('recurring-form').style.display = 'none';
+  renderRecurring();
+
+  // 背景同步
   try {
     if (id) {
-      await jsonp(API + '?action=updateRecurring&id=' + id, 'PUT', payload);
+      var res = await jsonp(API + '?action=updateRecurring&id=' + id, 'PUT', payload);
     } else {
-      await jsonp(API + '?action=addRecurring', 'POST', payload);
+      var res = await jsonp(API + '?action=addRecurring', 'POST', payload);
+      // 用真實 id 換掉 temp id
+      if (res && res.item) {
+        var tempIdx = recurringData.findIndex(function(r){ return r.id && r.id.startsWith('temp-'); });
+        if (tempIdx !== -1) recurringData[tempIdx] = res.item;
+        renderRecurring();
+      }
     }
-    document.getElementById('recurring-form').style.display = 'none';
+  } catch(e) {
+    alert('儲存失敗，請重試');
     await loadRecurring();
-  } catch(e) { alert('儲存失敗，請重試'); }
+  }
 }
 
 async function toggleRecurring(id, enabled) {
+  // 樂觀更新
+  var item = recurringData.find(function(r){ return r.id === id; });
+  if (item) item.enabled = enabled;
+  renderRecurring();
+
   try {
     await jsonp(API + '?action=updateRecurring&id=' + id, 'PUT', { enabled: enabled });
-    var item = recurringData.find(function(r){ return r.id === id; });
-    if (item) item.enabled = enabled;
+  } catch(e) {
+    // 失敗還原
+    if (item) item.enabled = !enabled;
     renderRecurring();
-  } catch(e) { alert('更新失敗'); }
+    alert('更新失敗');
+  }
 }
 
 async function deleteRecurring(id) {
   if (!confirm('確定刪除？')) return;
+  var backup = recurringData.slice();
+  recurringData = recurringData.filter(function(r){ return r.id !== id; });
+  renderRecurring();
+
   try {
     await jsonp(API + '?action=deleteRecurring&id=' + id, 'DELETE', {});
-    recurringData = recurringData.filter(function(r){ return r.id !== id; });
+  } catch(e) {
+    recurringData = backup;
     renderRecurring();
-  } catch(e) { alert('刪除失敗'); }
+    alert('刪除失敗');
+  }
 }
-
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
