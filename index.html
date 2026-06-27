@@ -456,7 +456,7 @@ async function loadRecords(month) {
   try {
     var data = await jsonp(API + '?action=getRecords&month=' + month);
     records = data.records || [];
-    setStatus('ok', '已連線 Google Sheets');
+    setStatus('ok', '已連線');
     return true;
   } catch(e) { setStatus('error', '連線失敗'); return false; }
 }
@@ -765,7 +765,7 @@ async function renderCards() {
         +'</div>';
     });
     breakdownEl.innerHTML = bHtml || '<div class="empty-state">本月無支出紀錄</div>';
-    setStatus('ok', '已連線 Google Sheets');
+    setStatus('ok', '已連線');
   } catch(e) { setStatus('error', '載入失敗'); }
 }
 
@@ -957,7 +957,7 @@ async function renderTrendCharts() {
         }
       }
     });
-    setStatus('ok', '已連線 Google Sheets');
+    ssetStatus('ok', '已連線');
   } catch(e) { setStatus('error', '載入趨勢失敗'); }
 }
 
