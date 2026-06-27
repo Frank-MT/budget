@@ -558,9 +558,11 @@ function updateRecordMonthUI() {
 
 async function changeRecordMonth(delta) {
   var parts = currentRecordMonth.split('-').map(Number);
-  var d = new Date(parts[0], parts[1] - 1 + delta, 1);
-  var next = d.toISOString().slice(0, 7);
-  // 不能超過當月
+  var year = parts[0];
+  var mon = parts[1] + delta;
+  if (mon > 12) { year++; mon = 1; }
+  if (mon < 1) { year--; mon = 12; }
+  var next = year + '-' + String(mon).padStart(2, '0');
   if (next > currentMonth()) return;
   currentRecordMonth = next;
   updateRecordMonthUI();
