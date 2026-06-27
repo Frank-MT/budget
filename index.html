@@ -375,10 +375,27 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
   <button class="nav-btn" onclick="switchTab('cards')" id="nav-cards"><span class="nav-icon">💳</span>帳單</button>
   <button class="nav-btn" onclick="switchTab('stats')" id="nav-stats"><span class="nav-icon">📊</span>統計</button>
   <button class="nav-btn" onclick="switchTab('budget')" id="nav-budget"><span class="nav-icon">🎯</span>預算</button>
-  <button class="nav-btn" onclick="switchTab('keywords')" id="nav-keywords"><span class="nav-icon">🏷️</span>分類</button>
-  <button class="nav-btn" onclick="switchTab('recurring')" id="nav-recurring"><span class="nav-icon">🔔</span>固定</button>
-  <button class="nav-btn" onclick="switchTab('payment')" id="nav-payment"><span class="nav-icon">💰</span>付款</button>
+  <button class="nav-btn" onclick="showMoreMenu()" id="nav-more"><span class="nav-icon">•••</span>更多</button>
 </nav>
+
+<!-- 更多選單遮罩 -->
+<div id="more-overlay" onclick="hideMoreMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:20;"></div>
+
+<!-- 更多選單 -->
+<div id="more-menu" style="display:none;position:fixed;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:12px 0 calc(24px + env(safe-area-inset-bottom));z-index:21;box-shadow:0 -4px 20px rgba(0,0,0,0.12);transform:translateY(100%);transition:transform 0.3s ease;">
+  <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px;"></div>
+  <div style="padding:0 8px;">
+    <button onclick="switchTabFromMore('keywords')" id="nav-keywords" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border:none;background:none;border-radius:12px;cursor:pointer;font-size:15px;color:#1a1a1a;">
+      <span style="font-size:22px;">🏷️</span>分類設定
+    </button>
+    <button onclick="switchTabFromMore('recurring')" id="nav-recurring" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border:none;background:none;border-radius:12px;cursor:pointer;font-size:15px;color:#1a1a1a;">
+      <span style="font-size:22px;">🔔</span>固定支出
+    </button>
+    <button onclick="switchTabFromMore('payment')" id="nav-payment" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border:none;background:none;border-radius:12px;cursor:pointer;font-size:15px;color:#1a1a1a;">
+      <span style="font-size:22px;">💰</span>付款方式
+    </button>
+  </div>
+</div>
 
 <script>
 var API = 'https://budget-api-omega.vercel.app';
@@ -1118,12 +1135,49 @@ async function renderStats() {
   renderTrendCharts();
 }
 
+function showMoreMenu() {
+  document.getElementById('more-overlay').style.display = 'block';
+  var menu = document.getElementById('more-menu');
+  menu.style.display = 'block';
+  setTimeout(function(){ menu.style.transform = 'translateY(0)'; }, 10);
+  // 底部 nav 更多按鈕 active
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('nav-more').classList.add('active');
+}
+
+function hideMoreMenu() {
+  var menu = document.getElementById('more-menu');
+  menu.style.transform = 'translateY(100%)';
+  setTimeout(function(){
+    menu.style.display = 'none';
+    document.getElementById('more-overlay').style.display = 'none';
+  }, 300);
+}
+
+function switchTabFromMore(tab) {
+  hideMoreMenu();
+  setTimeout(function(){ switchTab(tab); }, 150);
+  // 更多選單內的項目 active 樣式
+  ['keywords','recurring','payment'].forEach(function(t){
+    var btn = document.getElementById('nav-'+t);
+    if (btn) btn.style.background = t === tab ? '#f5f5f0' : '';
+  });
+}
+
 var TABS = ['records','cards','stats','budget','keywords','recurring','payment'];
+var MAIN_TABS = ['records','cards','stats','budget'];
 function switchTab(tab) {
   TABS.forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
-    document.getElementById('nav-'+t).classList.toggle('active', t===tab);
   });
+  // 底部主 tab active
+  MAIN_TABS.forEach(function(t){
+    var btn = document.getElementById('nav-'+t);
+    if (btn) btn.classList.toggle('active', t===tab);
+  });
+  // 更多按鈕：切到次要頁時也 active
+  var moreBtn = document.getElementById('nav-more');
+  if (moreBtn) moreBtn.classList.toggle('active', !MAIN_TABS.includes(tab));
   if (tab==='stats') renderStats();
   if (tab==='budget') renderBudgetSettings();
   if (tab==='keywords') renderKeywords();
