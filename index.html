@@ -126,6 +126,21 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 .keyword-add-input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; outline: none; }
 .keyword-add-btn { padding: 7px 14px; font-size: 13px; border: none; border-radius: 8px; background: #378ADD; color: white; cursor: pointer; white-space: nowrap; }
 .kw-section-label { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 500; }
+.month-btn {
+  padding: 6px 4px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  color: #aaa;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.month-btn.active {
+  background: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
+}
 </style>
 </head>
 <body>
@@ -274,18 +289,18 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
         <div style="margin-bottom:10px;">
           <label style="font-size:13px;color:#666;">提醒月份</label>
           <div id="rf-months" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:6px;">
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="1" checked>1月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="2" checked>2月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="3" checked>3月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="4" checked>4月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="5" checked>5月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="6" checked>6月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="7" checked>7月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="8" checked>8月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="9" checked>9月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="10" checked>10月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="11" checked>11月</label>
-            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"><input type="checkbox" value="12" checked>12月</label>
+            <button type="button" onclick="toggleMonth(this)" data-month="1" class="month-btn active">1月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="2" class="month-btn active">2月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="3" class="month-btn active">3月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="4" class="month-btn active">4月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="5" class="month-btn active">5月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="6" class="month-btn active">6月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="7" class="month-btn active">7月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="8" class="month-btn active">8月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="9" class="month-btn active">9月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="10" class="month-btn active">10月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="11" class="month-btn active">11月</button>
+            <button type="button" onclick="toggleMonth(this)" data-month="12" class="month-btn active">12月</button>
           </div>
         </div>
         <div style="margin-bottom:14px;">
@@ -1022,6 +1037,8 @@ function renderRecurring() {
   recurringData.forEach(function(item) {
     var amtStr = item.amount ? 'NT$' + Number(item.amount).toLocaleString() : '金額不固定';
     var months = item.months || [1,2,3,4,5,6,7,8,9,10,11,12];
+      var monthStr = months.length === 12 ? '每月' : months.map(function(m){ return m+'月'; }).join('・');
+    var months = item.months || [1,2,3,4,5,6,7,8,9,10,11,12];
     var monthStr = months.length === 12 ? '每月' : months.map(function(m){ return m+'月'; }).join('・');
     var payStr = item.payment ? '・' + item.payment : '';
     var enabledStyle = item.enabled ? '' : 'opacity:0.4;';
@@ -1045,6 +1062,10 @@ function renderRecurring() {
   el.innerHTML = html;
 }
 
+function toggleMonth(btn) {
+  btn.classList.toggle('active');
+}
+
 function showRecurringForm() {
   document.getElementById('rf-id').value = '';
   document.getElementById('rf-name').value = '';
@@ -1052,8 +1073,8 @@ function showRecurringForm() {
   document.getElementById('rf-amount').value = '';
   document.getElementById('rf-payment').value = '';
   document.getElementById('rf-note').value = '';
-  document.querySelectorAll('#rf-months input[type=checkbox]').forEach(function(cb) {
-    cb.checked = true;
+  document.querySelectorAll('#rf-months .month-btn').forEach(function(btn) {
+    btn.classList.add('active');
   });
   document.getElementById('recurring-form').style.display = 'block';
 }
@@ -1072,8 +1093,9 @@ function editRecurring(id) {
   document.getElementById('rf-payment').value = item.payment || '';
   document.getElementById('rf-note').value = item.note || '';
   var months = item.months || [1,2,3,4,5,6,7,8,9,10,11,12];
-  document.querySelectorAll('#rf-months input[type=checkbox]').forEach(function(cb) {
-    cb.checked = months.includes(parseInt(cb.value));
+  document.querySelectorAll('#rf-months .month-btn').forEach(function(btn) {
+    var m = parseInt(btn.dataset.month);
+    btn.classList.toggle('active', months.includes(m));
   });
   document.getElementById('recurring-form').style.display = 'block';
   document.getElementById('recurring-form').scrollIntoView({ behavior: 'smooth' });
@@ -1091,8 +1113,8 @@ async function saveRecurring() {
   if (!dueDay || dueDay < 1 || dueDay > 31) { alert('請輸入正確的繳費日（1-31）'); return; }
 
   var months = [];
-  document.querySelectorAll('#rf-months input[type=checkbox]').forEach(function(cb) {
-    if (cb.checked) months.push(parseInt(cb.value));
+  document.querySelectorAll('#rf-months .month-btn').forEach(function(btn) {
+    if (btn.classList.contains('active')) months.push(parseInt(btn.dataset.month));
   });
   if (!months.length) { alert('請至少選擇一個月份'); return; }
 
