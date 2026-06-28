@@ -188,8 +188,6 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
         <div style="display:flex;align-items:center;gap:8px;">
           <button onclick="changeRecordPeriod(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">←</button>
           <span id="record-period-label" onclick="openDatePicker()" style="font-size:13px;color:#666;min-width:80px;text-align:center;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;"></span>
-          <input type="month" id="picker-month" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" onchange="onMonthPicked(this.value)">
-          <input type="date" id="picker-day" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" onchange="onDayPicked(this.value)">
           <button id="record-period-next" onclick="changeRecordPeriod(1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">→</button>
           <button id="record-period-reset" onclick="resetRecordPeriod()" style="background:none;border:1px solid #ddd;border-radius:6px;font-size:12px;cursor:pointer;color:#888;padding:3px 8px;">今天</button>
         </div>
@@ -614,12 +612,18 @@ function openDatePicker() {
     var picker = document.getElementById('picker-month');
     picker.value = currentRecordMonth;
     picker.max = currentMonth();
+    picker.style.pointerEvents = 'auto';
+    picker.focus();
     picker.click();
+    picker.style.pointerEvents = 'none';
   } else {
     var picker = document.getElementById('picker-day');
     picker.value = currentRecordDay;
     picker.max = new Date().toISOString().split('T')[0];
+    picker.style.pointerEvents = 'auto';
+    picker.focus();
     picker.click();
+    picker.style.pointerEvents = 'none';
   }
 }
 
@@ -1696,5 +1700,9 @@ function renderPaymentList() {
     if (!session) window.location.href = 'login.html'; else init();
   });
 </script>
+
+          <input type="month" id="picker-month" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" onchange="onMonthPicked(this.value)">
+          <input type="date" id="picker-day" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" onchange="onDayPicked(this.value)">
+          
 </body>
 </html>
