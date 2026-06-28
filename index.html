@@ -1026,8 +1026,15 @@ async function renderTrendCharts() {
     var labels = trend.map(function(t){ return t.month.slice(5) + '月'; });
     var incomes = trend.map(function(t){ return t.income; });
     var expenses = trend.map(function(t){ return t.expense; });
-    var fixed = trend.map(function(t){ return t.fixed; });
-    var flexible = trend.map(function(t){ return t.flexible; });
+    var FIXED_CATS = ['固定支出'];
+    var fixed = trend.map(function(t){
+      return FIXED_CATS.reduce(function(s, cat){ return s + (t.cats && t.cats[cat] ? t.cats[cat] : 0); }, 0);
+    });
+    var flexible = trend.map(function(t){
+      var total = t.expense || 0;
+      var fixedAmt = FIXED_CATS.reduce(function(s, cat){ return s + (t.cats && t.cats[cat] ? t.cats[cat] : 0); }, 0);
+      return total - fixedAmt;
+    });
 
     // 圖一：月收支趨勢
     if (monthlyTrendChart) monthlyTrendChart.destroy();
