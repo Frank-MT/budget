@@ -405,6 +405,20 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
 </div>
 
 <script>
+function todayLocal() {
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+function currentMonthLocal() {
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  return y + '-' + m;
+}
 var API = 'https://budget-api-omega.vercel.app';
 var EXPENSE_CATS = ['餐飲','交通','購物','固定支出','居家','醫療','娛樂','教育','其他'];
 var INCOME_CATS = ['薪資','獎金','投資','副業','其他收入'];
@@ -413,7 +427,7 @@ var PAYMENT_METHODS = ['台新','富邦','現金','轉帳'];
 var records = [];
 var currentView = localStorage.getItem('recordView') || 'month';
 var currentRecordMonth = currentMonth();
-var currentRecordDay = new Date().toISOString().split('T')[0];
+var currentRecordDay = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
 var budget = {};
 var keywordsData = { defaults: {}, custom: {} };
 var trendChart = null;
@@ -461,7 +475,7 @@ function setStatus(state, text) {
   document.getElementById('status-text').textContent = text;
 }
 
-function currentMonth() { return new Date().toISOString().slice(0,7); }
+function currentMonth() { return currentMonthLocal(); }
 function daysInMonth() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth()+1, 0).getDate(); }
 function dayOfMonth() { return new Date().getDate(); }
 
@@ -579,7 +593,7 @@ async function loadRecords(month) {
 
 function updateRecordMonthUI() {
   var isMonth = currentView === 'month';
-  var today = new Date().toISOString().split('T')[0];
+  var today = todayLocal();
   var todayMonth = currentMonth();
 
   // 視角按鈕樣式
@@ -609,7 +623,7 @@ function updateRecordMonthUI() {
     document.getElementById('picker-month').max = currentMonth();
   } else {
     document.getElementById('picker-day').value = currentRecordDay;
-    document.getElementById('picker-day').max = new Date().toISOString().split('T')[0];
+    document.getElementById('picker-day').max = todayLocal();
   }
 }
 
@@ -633,7 +647,7 @@ async function onMonthPicked(value) {
 }
 
 async function onDayPicked(value) {
-  if (!value || value > new Date().toISOString().split('T')[0]) return;
+  if (!value || value > todayLocal()) return;
   var month = value.slice(0, 7);
   if (month !== currentRecordDay.slice(0, 7)) {
     currentRecordDay = value;
@@ -663,7 +677,7 @@ async function changeRecordPeriod(delta) {
     var d = new Date(currentRecordDay);
     d.setDate(d.getDate() + delta);
     var next = d.toISOString().split('T')[0];
-    if (next > new Date().toISOString().split('T')[0]) return;
+    if (next > todayLocal()) return;
     // 跨月時重新載入
     if (next.slice(0, 7) !== currentRecordDay.slice(0, 7)) {
       currentRecordDay = next;
@@ -681,7 +695,7 @@ async function resetRecordPeriod() {
   if (currentView === 'month') {
     currentRecordMonth = currentMonth();
   } else {
-    currentRecordDay = new Date().toISOString().split('T')[0];
+    currentRecordDay = todayLocal();
     var month = currentRecordDay.slice(0, 7);
     if (month !== currentRecordMonth) await loadRecords(month);
   }
@@ -1316,7 +1330,7 @@ function switchTab(tab) {
 }
 
 async function init() {
-  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value = todayLocal();
   updateCats();
   document.getElementById('f-type').addEventListener('change', updateCats);
   populateMonthSelect();
