@@ -1105,7 +1105,7 @@ async function renderTrendCharts() {
         }
       }
     });
-    ssetStatus('ok', '已連線');
+    setStatus('ok', '已連線');
   } catch(e) { console.error('趨勢載入錯誤:', e); setStatus('error', '載入趨勢失敗'); }
 }
 
