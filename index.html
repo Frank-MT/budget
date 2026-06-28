@@ -181,12 +181,15 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
     </div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="section-title" style="margin-bottom:0;">記帳紀錄</div>
+        <div style="display:flex;gap:4px;">
+          <button id="view-btn-month" onclick="switchView('month')" style="padding:5px 12px;font-size:12px;border-radius:20px;border:1.5px solid #1a1a1a;background:#1a1a1a;color:white;cursor:pointer;">月</button>
+          <button id="view-btn-day" onclick="switchView('day')" style="padding:5px 12px;font-size:12px;border-radius:20px;border:1.5px solid #ddd;background:white;color:#888;cursor:pointer;">日</button>
+        </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <button onclick="changeRecordMonth(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">←</button>
-          <span id="record-month-label" style="font-size:13px;color:#666;min-width:60px;text-align:center;"></span>
-          <button id="record-month-next" onclick="changeRecordMonth(1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">→</button>
-          <button id="record-month-reset" onclick="resetRecordMonth()" style="background:none;border:1px solid #ddd;border-radius:6px;font-size:12px;cursor:pointer;color:#888;padding:3px 8px;">回本月</button>
+          <button onclick="changeRecordPeriod(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">←</button>
+          <span id="record-period-label" style="font-size:13px;color:#666;min-width:80px;text-align:center;"></span>
+          <button id="record-period-next" onclick="changeRecordPeriod(1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">→</button>
+          <button id="record-period-reset" onclick="resetRecordPeriod()" style="background:none;border:1px solid #ddd;border-radius:6px;font-size:12px;cursor:pointer;color:#888;padding:3px 8px;">今天</button>
         </div>
       </div>
       <div id="records-list"><div class="empty-state">載入中...</div></div>
@@ -404,7 +407,9 @@ var INCOME_CATS = ['薪資','獎金','投資','副業','其他收入'];
 var CAT_COLORS = ['#378ADD','#1D9E75','#D85A30','#5B8C5A','#D4537E','#BA7517','#7F77DD','#639922','#888780'];
 var PAYMENT_METHODS = ['台新','富邦','現金','轉帳'];
 var records = [];
+var currentView = localStorage.getItem('recordView') || 'month';
 var currentRecordMonth = currentMonth();
+var currentRecordDay = new Date().toISOString().split('T')[0];
 var budget = {};
 var keywordsData = { defaults: {}, custom: {} };
 var trendChart = null;
@@ -569,31 +574,79 @@ async function loadRecords(month) {
 }
 
 function updateRecordMonthUI() {
-  var now = currentMonth();
-  var isCurrentMonth = currentRecordMonth === now;
-  document.getElementById('record-month-label').textContent = currentRecordMonth;
-  document.getElementById('record-month-next').style.visibility = isCurrentMonth ? 'hidden' : '';
-  document.getElementById('record-month-reset').style.visibility = isCurrentMonth ? 'hidden' : '';
+  var isMonth = currentView === 'month';
+  var today = new Date().toISOString().split('T')[0];
+  var todayMonth = currentMonth();
+
+  // 視角按鈕樣式
+  document.getElementById('view-btn-month').style.cssText = 'padding:5px 12px;font-size:12px;border-radius:20px;cursor:pointer;border:1.5px solid '+(isMonth?'#1a1a1a':'#ddd')+';background:'+(isMonth?'#1a1a1a':'white')+';color:'+(isMonth?'white':'#888')+';';
+  document.getElementById('view-btn-day').style.cssText = 'padding:5px 12px;font-size:12px;border-radius:20px;cursor:pointer;border:1.5px solid '+(!isMonth?'#1a1a1a':'#ddd')+';background:'+(!isMonth?'#1a1a1a':'white')+';color:'+(!isMonth?'white':'#888')+';';
+
+  if (isMonth) {
+    var isCurrentMonth = currentRecordMonth === todayMonth;
+    document.getElementById('record-period-label').textContent = currentRecordMonth;
+    document.getElementById('record-period-next').style.visibility = isCurrentMonth ? 'hidden' : '';
+    document.getElementById('record-period-reset').style.visibility = isCurrentMonth ? 'hidden' : '';
+    document.getElementById('record-period-reset').textContent = '本月';
+  } else {
+    var isToday = currentRecordDay === today;
+    document.getElementById('record-period-label').textContent = currentRecordDay;
+    document.getElementById('record-period-next').style.visibility = isToday ? 'hidden' : '';
+    document.getElementById('record-period-reset').style.visibility = isToday ? 'hidden' : '';
+    document.getElementById('record-period-reset').textContent = '今天';
+  }
 }
 
-async function changeRecordMonth(delta) {
-  var parts = currentRecordMonth.split('-').map(Number);
-  var year = parts[0];
-  var mon = parts[1] + delta;
-  if (mon > 12) { year++; mon = 1; }
-  if (mon < 1) { year--; mon = 12; }
-  var next = year + '-' + String(mon).padStart(2, '0');
-  if (next > currentMonth()) return;
-  currentRecordMonth = next;
+async function switchView(view) {
+  currentView = view;
+  localStorage.setItem('recordView', view);
   updateRecordMonthUI();
-  await loadRecords(currentRecordMonth);
+  // 日檢視：確保當月資料已載入
+  var month = currentView === 'month' ? currentRecordMonth : currentRecordDay.slice(0, 7);
+  await loadRecords(month);
   renderRecords();
 }
 
-async function resetRecordMonth() {
-  currentRecordMonth = currentMonth();
+async function changeRecordPeriod(delta) {
+  if (currentView === 'month') {
+    var parts = currentRecordMonth.split('-').map(Number);
+    var year = parts[0];
+    var mon = parts[1] + delta;
+    if (mon > 12) { year++; mon = 1; }
+    if (mon < 1) { year--; mon = 12; }
+    var next = year + '-' + String(mon).padStart(2, '0');
+    if (next > currentMonth()) return;
+    currentRecordMonth = next;
+    updateRecordMonthUI();
+    await loadRecords(currentRecordMonth);
+    renderRecords();
+  } else {
+    var d = new Date(currentRecordDay);
+    d.setDate(d.getDate() + delta);
+    var next = d.toISOString().split('T')[0];
+    if (next > new Date().toISOString().split('T')[0]) return;
+    // 跨月時重新載入
+    if (next.slice(0, 7) !== currentRecordDay.slice(0, 7)) {
+      currentRecordDay = next;
+      updateRecordMonthUI();
+      await loadRecords(next.slice(0, 7));
+    } else {
+      currentRecordDay = next;
+      updateRecordMonthUI();
+    }
+    renderRecords();
+  }
+}
+
+async function resetRecordPeriod() {
+  if (currentView === 'month') {
+    currentRecordMonth = currentMonth();
+  } else {
+    currentRecordDay = new Date().toISOString().split('T')[0];
+    var month = currentRecordDay.slice(0, 7);
+    if (month !== currentRecordMonth) await loadRecords(month);
+  }
   updateRecordMonthUI();
-  await loadRecords(currentRecordMonth);
   renderRecords();
 }
 
@@ -761,48 +814,77 @@ function renderBudgetBars() {
   card.style.display = hasBudget ? '' : 'none';
 }
 
+function buildRecordHTML(r) {
+  var year = String(r.date).slice(0,4);
+  var isIncome = r.type === 'income';
+  var title = r.note ? r.cat + ' · ' + r.note : r.cat;
+  var payTag = r.payment ? '<span class="'+getPayClass(r.payment)+'">'+r.payment+'</span>' : '';
+  var catOptions = (isIncome ? INCOME_CATS : EXPENSE_CATS).map(function(c){
+    return '<option value="'+c+'"'+(c===r.cat?' selected':'')+'>'+c+'</option>';
+  }).join('');
+  var payOptions = paymentMethodsData.filter(function(m){ return m.enabled; }).map(function(m){
+    return '<option value="'+m.name+'"'+(m.name===r.payment?' selected':'')+'>'+m.name+'</option>';
+  }).join('');
+  return '<div class="record-item" id="ri-'+r.id+'">'
+    +'<div class="record-left">'
+    +'<div class="record-title"><span class="badge '+(isIncome?'type-in':'type-out')+'">'+(isIncome?'收入':'支出')+'</span>'+title+'</div>'
+    +'<div class="record-sub">'+r.date+(payTag?' '+payTag:'')+'</div>'
+    +'</div>'
+    +'<div class="record-amount '+(isIncome?'amount-in':'amount-out')+'">'+(isIncome?'+':'-')+'NT$'+Number(r.amount).toLocaleString()+'</div>'
+    +'<button class="edit-btn" onclick="toggleEdit(\''+r.id+'\')" aria-label="編輯">✏️</button>'
+    +'<button class="del-btn" onclick="deleteRecord('+r.id+',\''+year+'\')" aria-label="刪除">×</button>'
+    +'</div>'
+    +'<div class="edit-form" id="ef-'+r.id+'">'
+    +'<div class="edit-row-2">'
+    +'<div class="form-group"><span class="form-label">分類</span><div class="select-wrap"><select id="ec-'+r.id+'">'+catOptions+'</select></div></div>'
+    +'<div class="form-group"><span class="form-label">付款方式</span><div class="select-wrap"><select id="ep-'+r.id+'">'+payOptions+'</select></div></div>'
+    +'</div>'
+    +'<div class="edit-row-3">'
+    +'<div class="form-group"><span class="form-label">金額</span><input type="number" id="ea-'+r.id+'" value="'+r.amount+'" inputmode="numeric" /></div>'
+    +'<div class="form-group" style="grid-column:span 2;"><span class="form-label">備註</span><input type="text" id="en-'+r.id+'" value="'+(r.note||'')+'" /></div>'
+    +'</div>'
+    +'<div class="form-group"><span class="form-label">日期</span><input type="date" id="ed-'+r.id+'" value="'+r.date+'" /></div>'
+    +'<div class="edit-actions">'
+    +'<button class="btn-cancel" onclick="toggleEdit(\''+r.id+'\')">取消</button>'
+    +'<button class="btn-save-edit" onclick="saveEdit('+r.id+',\''+year+'\',\''+r.type+'\')">儲存</button>'
+    +'</div>'
+    +'</div>';
+}
+
 function renderRecords() {
   updateMetrics();
   renderBudgetBars();
   var el = document.getElementById('records-list');
-  if (!records.length) { el.innerHTML = '<div class="empty-state">本月尚無紀錄</div>'; return; }
+
+  // 依視角過濾
+  var displayRecords = currentView === 'day'
+    ? records.filter(function(r){ return r.date === currentRecordDay; })
+    : records;
+
+  if (!displayRecords.length) {
+    el.innerHTML = '<div class="empty-state">'+(currentView==='day'?'今日尚無紀錄':'本月尚無紀錄')+'</div>';
+    return;
+  }
+
+  // 日檢視：顯示當日小計
+  if (currentView === 'day') {
+    var dayIncome = displayRecords.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+Number(r.amount);},0);
+    var dayExpense = displayRecords.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+Number(r.amount);},0);
+    var html = '<div style="display:flex;justify-content:space-between;padding:8px 0 12px;border-bottom:1px solid #f0f0f0;margin-bottom:4px;font-size:13px;color:#888;">'
+      +'<span>支出 <span style="color:#D85A30;font-weight:500;">NT$'+dayExpense.toLocaleString()+'</span></span>'
+      +(dayIncome ? '<span>收入 <span style="color:#1D9E75;font-weight:500;">NT$'+dayIncome.toLocaleString()+'</span></span>' : '')
+      +'<span>共 '+displayRecords.length+' 筆</span>'
+      +'</div>';
+    for (var i = 0; i < displayRecords.length; i++) {
+      html += buildRecordHTML(displayRecords[i]);
+    }
+    el.innerHTML = html;
+    return;
+  }
+
   var html = '';
   for (var i = 0; i < records.length; i++) {
-    var r = records[i];
-    var year = String(r.date).slice(0,4);
-    var isIncome = r.type === 'income';
-    var title = r.note ? r.cat + ' · ' + r.note : r.cat;
-    var payTag = r.payment ? '<span class="'+getPayClass(r.payment)+'">'+r.payment+'</span>' : '';
-    var catOptions = (isIncome ? INCOME_CATS : EXPENSE_CATS).map(function(c){
-      return '<option value="'+c+'"'+(c===r.cat?' selected':'')+'>'+c+'</option>';
-    }).join('');
-    var payOptions = paymentMethodsData.filter(function(m){ return m.enabled; }).map(function(m){
-      return '<option value="'+m.name+'"'+(m.name===r.payment?' selected':'')+'>'+m.name+'</option>';
-    }).join('');
-    html += '<div class="record-item" id="ri-'+r.id+'">'
-      +'<div class="record-left">'
-      +'<div class="record-title"><span class="badge '+(isIncome?'type-in':'type-out')+'">'+(isIncome?'收入':'支出')+'</span>'+title+'</div>'
-      +'<div class="record-sub">'+r.date+(payTag?' '+payTag:'')+'</div>'
-      +'</div>'
-      +'<div class="record-amount '+(isIncome?'amount-in':'amount-out')+'">'+(isIncome?'+':'-')+'NT$'+Number(r.amount).toLocaleString()+'</div>'
-      +'<button class="edit-btn" onclick="toggleEdit(\''+r.id+'\')" aria-label="編輯">✏️</button>'
-      +'<button class="del-btn" onclick="deleteRecord('+r.id+',\''+year+'\')" aria-label="刪除">×</button>'
-      +'</div>'
-      +'<div class="edit-form" id="ef-'+r.id+'">'
-      +'<div class="edit-row-2">'
-      +'<div class="form-group"><span class="form-label">分類</span><div class="select-wrap"><select id="ec-'+r.id+'">'+catOptions+'</select></div></div>'
-      +'<div class="form-group"><span class="form-label">付款方式</span><div class="select-wrap"><select id="ep-'+r.id+'">'+payOptions+'</select></div></div>'
-      +'</div>'
-      +'<div class="edit-row-3">'
-      +'<div class="form-group"><span class="form-label">金額</span><input type="number" id="ea-'+r.id+'" value="'+r.amount+'" inputmode="numeric" /></div>'
-      +'<div class="form-group" style="grid-column:span 2;"><span class="form-label">備註</span><input type="text" id="en-'+r.id+'" value="'+(r.note||'')+'" /></div>'
-      +'</div>'
-      +'<div class="form-group"><span class="form-label">日期</span><input type="date" id="ed-'+r.id+'" value="'+r.date+'" /></div>'
-      +'<div class="edit-actions">'
-      +'<button class="btn-cancel" onclick="toggleEdit(\''+r.id+'\')">取消</button>'
-      +'<button class="btn-save-edit" onclick="saveEdit('+r.id+',\''+year+'\',\''+r.type+'\')">儲存</button>'
-      +'</div>'
-      +'</div>';
+    html += buildRecordHTML(records[i]);
   }
   el.innerHTML = html;
 }
@@ -1200,7 +1282,7 @@ async function init() {
   document.getElementById('f-type').addEventListener('change', updateCats);
   populateMonthSelect();
   await Promise.all([loadBudget(), loadKeywords(), loadRecords(currentMonth()), loadPaymentMethods()]);
-  updateRecordMonthUI();
+  switchView(currentView);
   renderRecords();
 }
 
