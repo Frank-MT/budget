@@ -143,6 +143,9 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
   color: white;
   border-color: #1a1a1a;
 }
+
+.fchip { font-size:12px; padding:4px 10px; border-radius:20px; border:1px solid #e0e0e0; background:white; color:#888; cursor:pointer; }
+.fchip.active { background:#1a1a1a; color:white; border-color:#1a1a1a; }
 </style>
 </head>
 <body>
@@ -194,7 +197,43 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
           </div>
           <button id="record-period-next" onclick="changeRecordPeriod(1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">→</button>
           <button id="record-period-reset" onclick="resetRecordPeriod()" style="background:none;border:1px solid #ddd;border-radius:6px;font-size:12px;cursor:pointer;color:#888;padding:3px 8px;">今天</button>
+          <button onclick="toggleSearchPanel()" id="search-toggle-btn" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:18px;"><i class="ti ti-search" aria-hidden="true"></i></button>
         </div>
+      </div>
+      <!-- 搜尋列 -->
+      <div id="search-panel" style="display:none;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;position:relative;">
+            <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#aaa;" aria-hidden="true"></i>
+            <input type="text" id="search-input" placeholder="搜尋備註或分類..." oninput="applyFilters()" style="padding:8px 10px 8px 32px;font-size:13px;border:1px solid #e8e8e8;border-radius:8px;width:100%;background:#fafaf8;">
+          </div>
+          <button onclick="clearFilters()" id="clear-btn" style="display:none;font-size:12px;color:#D85A30;border:1px solid #D85A30;border-radius:6px;padding:4px 10px;background:none;cursor:pointer;white-space:nowrap;">清除</button>
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px;">類型</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="filter-type">
+            <button onclick="toggleFilter('type','expense',this)" class="fchip">支出</button>
+            <button onclick="toggleFilter('type','income',this)" class="fchip">收入</button>
+          </div>
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px;">分類</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="filter-cat"></div>
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px;">付款方式</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="filter-payment"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px;">金額範圍</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="number" id="filter-min" placeholder="最小" oninput="applyFilters()" style="flex:1;padding:6px 8px;font-size:12px;border:1px solid #e8e8e8;border-radius:6px;background:#fafaf8;">
+            <span style="font-size:12px;color:#aaa;">—</span>
+            <input type="number" id="filter-max" placeholder="最大" oninput="applyFilters()" style="flex:1;padding:6px 8px;font-size:12px;border:1px solid #e8e8e8;border-radius:6px;background:#fafaf8;">
+          </div>
+        </div>
+        <div style="height:0.5px;background:#f0f0f0;margin:10px 0;"></div>
+        <div id="search-result-count" style="font-size:12px;color:#aaa;margin-bottom:4px;"></div>
       </div>
       <div id="records-list"><div class="empty-state">載入中...</div></div>
     </div>
@@ -435,6 +474,66 @@ var pieChart = null;
 var cbCount = 0;
 var paymentMethodsData = [];
 
+var searchActive = false;
+var activeFilters = { type: [], cat: [], payment: [], minAmt: null, maxAmt: null };
+
+function toggleSearchPanel() {
+  searchActive = !searchActive;
+  document.getElementById('search-panel').style.display = searchActive ? '' : 'none';
+  document.getElementById('search-toggle-btn').style.color = searchActive ? '#1a1a1a' : '#888';
+  if (searchActive) renderFilterChips();
+}
+
+function renderFilterChips() {
+  // 分類 chips
+  var catEl = document.getElementById('filter-cat');
+  catEl.innerHTML = EXPENSE_CATS.concat(INCOME_CATS).map(function(cat) {
+    var isActive = activeFilters.cat.includes(cat);
+    return '<button onclick="toggleFilter(\'cat\',\''+cat+'\',this)" class="fchip'+(isActive?' active':'')+'">'+cat+'</button>';
+  }).join('');
+
+  // 付款方式 chips
+  var payEl = document.getElementById('filter-payment');
+  var methods = paymentMethodsData.filter(function(m){ return m.enabled; });
+  payEl.innerHTML = methods.map(function(m) {
+    var isActive = activeFilters.payment.includes(m.name);
+    return '<button onclick="toggleFilter(\'payment\',\''+m.name+'\',this)" class="fchip'+(isActive?' active':'')+'">'+m.name+'</button>';
+  }).join('');
+
+  // 類型 chips active 狀態
+  document.querySelectorAll('#filter-type .fchip').forEach(function(btn) {
+    var val = btn.textContent === '支出' ? 'expense' : 'income';
+    btn.classList.toggle('active', activeFilters.type.includes(val));
+  });
+}
+
+function toggleFilter(key, value, btn) {
+  var arr = activeFilters[key];
+  var idx = arr.indexOf(value);
+  if (idx >= 0) arr.splice(idx, 1);
+  else arr.push(value);
+  btn.classList.toggle('active', arr.includes(value));
+  applyFilters();
+}
+
+function applyFilters() {
+  activeFilters.minAmt = document.getElementById('filter-min').value ? Number(document.getElementById('filter-min').value) : null;
+  activeFilters.maxAmt = document.getElementById('filter-max').value ? Number(document.getElementById('filter-max').value) : null;
+  var hasFilter = activeFilters.type.length || activeFilters.cat.length || activeFilters.payment.length || activeFilters.minAmt !== null || activeFilters.maxAmt !== null || document.getElementById('search-input').value.trim();
+  document.getElementById('clear-btn').style.display = hasFilter ? '' : 'none';
+  renderRecords();
+}
+
+function clearFilters() {
+  activeFilters = { type: [], cat: [], payment: [], minAmt: null, maxAmt: null };
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-min').value = '';
+  document.getElementById('filter-max').value = '';
+  renderFilterChips();
+  document.getElementById('clear-btn').style.display = 'none';
+  renderRecords();
+}
+
 async function loadPaymentMethods() {
   try {
     var token = await getToken();
@@ -587,6 +686,7 @@ async function loadRecords(month) {
     var data = await jsonp(API + '?action=getRecords&month=' + month);
     records = data.records || [];
     setStatus('ok', '已連線');
+    if (searchActive) renderFilterChips();
     return true;
   } catch(e) { setStatus('error', '連線失敗'); return false; }
 }
@@ -913,6 +1013,22 @@ function renderRecords() {
   var displayRecords = currentView === 'day'
     ? records.filter(function(r){ return r.date === currentRecordDay; })
     : records;
+
+  // 搜尋與過濾
+  var keyword = searchActive ? document.getElementById('search-input').value.trim().toLowerCase() : '';
+  if (searchActive) {
+    displayRecords = displayRecords.filter(function(r) {
+      if (activeFilters.type.length && !activeFilters.type.includes(r.type)) return false;
+      if (activeFilters.cat.length && !activeFilters.cat.includes(r.cat)) return false;
+      if (activeFilters.payment.length && !activeFilters.payment.includes(r.payment)) return false;
+      if (activeFilters.minAmt !== null && Number(r.amount) < activeFilters.minAmt) return false;
+      if (activeFilters.maxAmt !== null && Number(r.amount) > activeFilters.maxAmt) return false;
+      if (keyword && !r.cat.toLowerCase().includes(keyword) && !(r.note || '').toLowerCase().includes(keyword)) return false;
+      return true;
+    });
+    var countEl = document.getElementById('search-result-count');
+    if (countEl) countEl.textContent = '找到 ' + displayRecords.length + ' 筆結果';
+  }
 
   if (!displayRecords.length) {
     el.innerHTML = '<div class="empty-state">'+(currentView==='day'?'今日尚無紀錄':'本月尚無紀錄')+'</div>';
