@@ -1476,12 +1476,12 @@ async function init() {
   // 讀取 hash 決定初始 tab
   var initTab = location.hash.replace('#', '') || 'records';
   if (!TABS.includes(initTab)) initTab = 'records';
+  // 永遠先 render 記帳頁資料
+  currentView = localStorage.getItem('recordView') || 'month';
+  updateRecordMonthUI();
+  renderRecords();
+  // 再切到目標 tab
   switchTab(initTab);
-  if (initTab === 'records') {
-    currentView = localStorage.getItem('recordView') || 'month';
-    updateRecordMonthUI();
-    renderRecords();
-  }
   // 監聽瀏覽器前進/後退
   window.addEventListener('hashchange', function() {
     var tab = location.hash.replace('#', '') || 'records';
