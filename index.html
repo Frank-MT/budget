@@ -1467,11 +1467,6 @@ function switchTab(tab) {
 }
 
 async function init() {
-  // 先隱藏所有 tab，避免閃爍
-  TABS.forEach(function(t) {
-    var el = document.getElementById('tab-'+t);
-    if (el) el.style.display = 'none';
-  });
   document.getElementById('f-date').value = todayLocal();
   updateCats();
   document.getElementById('f-type').addEventListener('change', updateCats);
