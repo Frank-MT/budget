@@ -517,6 +517,7 @@ function toggleFilter(key, value, btn) {
 }
 
 function applyFilters() {
+  console.log('activeFilters:', JSON.stringify(activeFilters));
   activeFilters.minAmt = document.getElementById('filter-min').value ? Number(document.getElementById('filter-min').value) : null;
   activeFilters.maxAmt = document.getElementById('filter-max').value ? Number(document.getElementById('filter-max').value) : null;
   var hasFilter = activeFilters.type.length || activeFilters.cat.length || activeFilters.payment.length || activeFilters.minAmt !== null || activeFilters.maxAmt !== null || document.getElementById('search-input').value.trim();
