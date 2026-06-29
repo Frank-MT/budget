@@ -184,9 +184,10 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
     </div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="display:flex;gap:4px;">
-          <button id="view-btn-month" onclick="switchView('month')" style="padding:5px 12px;font-size:12px;border-radius:20px;border:1.5px solid #1a1a1a;background:#1a1a1a;color:white;cursor:pointer;">月</button>
-          <button id="view-btn-day" onclick="switchView('day')" style="padding:5px 12px;font-size:12px;border-radius:20px;border:1.5px solid #ddd;background:white;color:#888;cursor:pointer;">日</button>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <button id="view-btn-month" onclick="switchView('month')" ...>月</button>
+          <button id="view-btn-day" onclick="switchView('day')" ...>日</button>
+          <button onclick="toggleSearchPanel()" id="search-toggle-btn" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:16px;">🔍</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <button onclick="changeRecordPeriod(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">←</button>
@@ -197,7 +198,6 @@ input:focus, select:focus { border-color: #1a1a1a; background: white; }
           </div>
           <button id="record-period-next" onclick="changeRecordPeriod(1)" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">→</button>
           <button id="record-period-reset" onclick="resetRecordPeriod()" style="background:none;border:1px solid #ddd;border-radius:6px;font-size:12px;cursor:pointer;color:#888;padding:3px 8px;">今天</button>
-          <button onclick="toggleSearchPanel()" id="search-toggle-btn" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:16px;">🔍</button>
         </div>
       </div>
       <!-- 搜尋列 -->
