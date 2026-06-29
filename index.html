@@ -1444,6 +1444,7 @@ function switchTabFromMore(tab) {
 var TABS = ['records','cards','stats','budget','keywords','recurring','payment'];
 var MAIN_TABS = ['records','cards','stats','budget'];
 function switchTab(tab) {
+  location.hash = tab;  // 加這行
   TABS.forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
   });
@@ -1470,10 +1471,23 @@ async function init() {
   document.getElementById('f-type').addEventListener('change', updateCats);
   populateMonthSelect();
   await Promise.all([loadBudget(), loadKeywords(), loadRecords(currentMonth()), loadPaymentMethods()]);
-  switchView(currentView);
-  renderRecords();
-}
+  
+  // 讀取 hash 決定初始 tab
+  var initTab = location.hash.replace('#', '') || 'records';
+  if (!TABS.includes(initTab)) initTab = 'records';
+  switchTab(initTab);
+  
+  if (initTab === 'records') {
+    switchView(currentView);
+    renderRecords();
+  }
 
+  // 監聽瀏覽器前進/後退
+  window.addEventListener('hashchange', function() {
+    var tab = location.hash.replace('#', '') || 'records';
+    if (TABS.includes(tab)) switchTab(tab);
+  });
+}
 // ===== 固定支出 =====
 var recurringData = [];
 
