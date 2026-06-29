@@ -1445,7 +1445,7 @@ function switchTabFromMore(tab) {
 var TABS = ['records','cards','stats','budget','keywords','recurring','payment'];
 var MAIN_TABS = ['records','cards','stats','budget'];
 function switchTab(tab) {
-  location.hash = tab;  // 加這行
+  history.replaceState(null, '', '#' + tab);
   TABS.forEach(function(t) {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
   });
@@ -1481,12 +1481,10 @@ async function init() {
   // 讀取 hash 決定初始 tab
   var initTab = location.hash.replace('#', '') || 'records';
   if (!TABS.includes(initTab)) initTab = 'records';
-  
+  switchTab(initTab);
   if (initTab === 'records') {
     switchView(currentView);
     renderRecords();
-  } else {
-    switchTab(initTab);
   }
 
   // 監聽瀏覽器前進/後退
