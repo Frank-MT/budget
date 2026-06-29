@@ -1478,10 +1478,10 @@ async function init() {
   if (!TABS.includes(initTab)) initTab = 'records';
   switchTab(initTab);
   if (initTab === 'records') {
-    switchView(currentView);
+    currentView = localStorage.getItem('recordView') || 'month';
+    updateRecordMonthUI();
     renderRecords();
   }
-
   // 監聽瀏覽器前進/後退
   window.addEventListener('hashchange', function() {
     var tab = location.hash.replace('#', '') || 'records';
