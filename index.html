@@ -524,6 +524,19 @@ function applyFilters() {
   var hasFilter = activeFilters.type.length || activeFilters.cat.length || activeFilters.payment.length || activeFilters.minAmt !== null || activeFilters.maxAmt !== null || document.getElementById('search-input').value.trim();
   document.getElementById('clear-btn').style.display = hasFilter ? '' : 'none';
   renderRecords();
+  // 更新搜尋按鈕狀態
+  var btn = document.getElementById('search-toggle-btn');
+  var count = activeFilters.type.length + activeFilters.cat.length + activeFilters.payment.length
+    + (activeFilters.minAmt !== null ? 1 : 0)
+    + (activeFilters.maxAmt !== null ? 1 : 0)
+    + (document.getElementById('search-input').value.trim() ? 1 : 0);
+  if (count > 0) {
+    btn.innerHTML = '🔍 <span style="font-size:11px;background:#D85A30;color:white;border-radius:10px;padding:1px 5px;">'+count+'</span>';
+    btn.style.color = '#D85A30';
+  } else {
+    btn.innerHTML = '🔍';
+    btn.style.color = '#888';
+  }
 }
 
 function clearFilters() {
@@ -534,6 +547,9 @@ function clearFilters() {
   renderFilterChips();
   document.getElementById('clear-btn').style.display = 'none';
   renderRecords();
+  var btn = document.getElementById('search-toggle-btn');
+  btn.innerHTML = '🔍';
+  btn.style.color = '#888';
 }
 
 async function loadPaymentMethods() {
