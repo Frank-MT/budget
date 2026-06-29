@@ -1475,11 +1475,12 @@ async function init() {
   // 讀取 hash 決定初始 tab
   var initTab = location.hash.replace('#', '') || 'records';
   if (!TABS.includes(initTab)) initTab = 'records';
-  switchTab(initTab);
   
   if (initTab === 'records') {
     switchView(currentView);
     renderRecords();
+  } else {
+    switchTab(initTab);
   }
 
   // 監聽瀏覽器前進/後退
