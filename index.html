@@ -1054,8 +1054,8 @@ function renderRecords() {
   }
 
   var html = '';
-  for (var i = 0; i < records.length; i++) {
-    html += buildRecordHTML(records[i]);
+  for (var i = 0; i < displayRecords.length; i++) {
+    html += buildRecordHTML(displayRecords[i]);
   }
   el.innerHTML = html;
 }
